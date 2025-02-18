@@ -9,3 +9,22 @@ package-lock.yml
 .venv/
 package-lock.yml
 .vscode
+
+# added
+__pycache__
+slurm.jobid
+jobs/generated/*.sh
+scratch/
+.ipynb_checkpoints
+notebooks/.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/*
+notebooks/**/.ipynb_checkpoints/*
+seeds/
+data/
+*.csv
+*.local
+*.out
+*.log
+*.parquet
+tuvaduck.duckdb
+

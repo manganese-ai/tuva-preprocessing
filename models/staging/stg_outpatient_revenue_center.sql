@@ -1,45 +1,16 @@
-select
-      desy_sort_key
-    , claim_no
-    , clm_line_num
-    , clm_thru_dt
-    , nch_clm_type_cd
-    , rev_cntr
-    , rev_cntr_dt
-    , rev_cntr_apc_hipps_cd
-    , hcpcs_cd
-    , hcpcs_1st_mdfr_cd
-    , hcpcs_2nd_mdfr_cd
-    , hcpcs_3rd_mdfr_cd
-    , hcpcs_4th_mdfr_cd
-    , rev_cntr_pmt_mthd_ind_cd
-    , rev_cntr_dscnt_ind_cd
-    , rev_cntr_packg_ind_cd
-    , rev_cntr_otaf_pmt_cd
-    , rev_cntr_ide_ndc_upc_num
-    , rev_cntr_unit_cnt
-    , rev_cntr_rate_amt
-    , rev_cntr_blood_ddctbl_amt
-    , rev_cntr_cash_ddctbl_amt
-    , rev_cntr_coinsrnc_wge_adjstd_c
-    , rev_cntr_rdcd_coinsrnc_amt
-    , rev_cntr_1st_msp_pd_amt
-    , rev_cntr_2nd_msp_pd_amt
-    , rev_cntr_prvdr_pmt_amt
-    , rev_cntr_bene_pmt_amt
-    , rev_cntr_ptnt_rspnsblty_pmt
-    , rev_cntr_pmt_amt_amt
-    , rev_cntr_tot_chrg_amt
-    , rev_cntr_ncvrd_chrg_amt
-    , rev_cntr_stus_ind_cd
-    , rev_cntr_pricng_ind_cd
-    , rev_cntr_rndrng_physn_upin
-    , rev_cntr_rndrng_physn_npi
-    , rev_cntr_rndrng_physn_spclty_cd
-    , rev_cntr_ddctbl_coinsrnc_cd
-    , thrpy_cap_ind_cd1
-    , thrpy_cap_ind_cd2
-    , rc_ptnt_add_on_pymt_amt
-    , file_name
-    , ingest_datetime
-from {{ source('medicare_lds','outpatient_revenue_center') }}
+{{config(enabled=(not var('inpatient_only', False)))}}
+{% call select_from_multi_source('outpatient_revs') %}
+      cast(CLM_ID as {{ dbt.type_string() }} ) as CLAIM_NO
+    , cast(CLM_LINE_NUM as {{ dbt.type_numeric() }}) as CLM_LINE_NUM
+    , to_date(CLM_THRU_DT, 'dd-MMM-yyyy') as CLM_THRU_DT
+    , cast(HCPCS_1ST_MDFR_CD as {{ dbt.type_string() }}) as HCPCS_1ST_MDFR_CD
+    , cast(HCPCS_2ND_MDFR_CD as {{ dbt.type_string() }}) as HCPCS_2ND_MDFR_CD
+    , cast(HCPCS_CD as {{ dbt.type_string() }}) as HCPCS_CD
+    , to_date(REV_CNTR_DT, 'dd-MMM-yyyy') as REV_CNTR_DT
+    , cast(REV_CNTR_UNIT_CNT as {{ dbt.type_numeric() }}) as REV_CNTR_UNIT_CNT
+    , lpad(CAST(REV_CNTR AS STRING), 4, '0') as REV_CNTR
+    , cast(RNDRNG_PHYSN_NPI as {{ dbt.type_string() }}) as REV_CNTR_RNDRNG_PHYSN_NPI
+    , cast(HCPCS_3RD_MDFR_CD as {{ dbt.type_string() }}) as HCPCS_3RD_MDFR_CD
+    , cast(HCPCS_4TH_MDFR_CD as {{ dbt.type_string() }}) as HCPCS_4TH_MDFR_CD
+
+{% endcall %}

@@ -5,14 +5,15 @@ config-version: 2
 profile: default                   
 
 vars:
-  input_database: medicare_lds_five_percent
+  input_database: milli
   input_schema:  raw_data
-
+  debug_mode: false
   claims_enabled: true
-
-  # Default values for data marts, update as needed
-  cms_hcc_payment_year: 2021
-  quality_measures_period_end: "2020-12-31"
+  cms_hcc_payment_year: 2019
+  years: 2018,2019
+  outpatient_only: false
+  inpatient_only: false
+  # patient_id_suffix: sK2 # sK2
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -25,3 +26,9 @@ target-path: "target"  # directory which will store compiled SQL files
 clean-targets:         # directories to be removed by `dbt clean`
   - "target"
   - "dbt_packages"
+
+models:
+  medicare_lds_connector:
+    +bind: false
+    +materialized: table
+    +schema: staging

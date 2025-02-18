@@ -5,18 +5,54 @@ sources:
     database: "{{ var('input_database') }}"
     schema:  "{{ var('input_schema') }}"
     tables:
-      - name: carrier_base_claim
-      - name: carrier_claim_line
-      - name: dme_base_claim
-      - name: dme_claim_line
-      - name: hha_base_claim
-      - name: hha_revenue_center
-      - name: hospice_base_claim
-      - name: hospice_revenue_center
-      - name: inpatient_base_claim
-      - name: inpatient_revenue_center
-      - name: master_beneficiary_summary
-      - name: outpatient_base_claim
-      - name: outpatient_revenue_center
-      - name: snf_base_claim
-      - name: snf_revenue_center
+      # outpatient
+      - name: beneficiary_2018
+        identifier: den18p20
+      - name: beneficiary_2019
+        identifier: den19p20
+      - name: hha_2018
+        identifier: hhaclms18
+      - name: hha_2019
+        identifier: hhaclms19
+      - name: hha_revs_2018
+        identifier: hharevcntr18
+      - name: hha_revs_2019
+        identifier: hharevcntr19
+      - name: hospice_2018
+        identifier: hospice_clms18
+      # - name: hospice_2019
+      #   identifier: 
+      - name: hospice_revs_2018
+        identifier: hospice_revcntr18
+      # - name: hospice_revs_2019
+      #   identifier: 
+      - name: outpatient_2018
+        identifier: op18clms
+      - name: outpatient_2019
+        identifier: op19clms
+      - name: outpatient_revs_2018
+        identifier: op18revs
+      - name: outpatient_revs_2019
+        identifier: op19revs
+      - name: carrier_2018
+        identifier: ptb18clms
+      - name: carrier_2019
+        identifier: ptb19clms
+      - name: carrier_line_2018
+        identifier: ptb18lnits
+      - name: carrier_line_2019
+        identifier: ptb19lnits
+      - name: dme_2018
+        identifier: dme_clms18
+      - name: dme_2019
+        identifier: dme_clms19
+      - name: dme_line_2018
+        identifier: dme_ln18
+      - name: dme_line_2019
+        identifier: dme_ln19
+
+      # inpatient
+      - name: medpar_2018
+        identifier: med18p20
+      - name: medpar_2019
+        identifier: med19p20

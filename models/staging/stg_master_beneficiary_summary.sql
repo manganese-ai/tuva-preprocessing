@@ -1,83 +1,30 @@
-select
-      desy_sort_key
-    , reference_year
-    , sample_group
-    , state_code
-    , county_code
-    , state_cnty_fips_cd_01
-    , state_cnty_fips_cd_02
-    , state_cnty_fips_cd_03
-    , state_cnty_fips_cd_04
-    , state_cnty_fips_cd_05
-    , state_cnty_fips_cd_06
-    , state_cnty_fips_cd_07
-    , state_cnty_fips_cd_08
-    , state_cnty_fips_cd_09
-    , state_cnty_fips_cd_10
-    , state_cnty_fips_cd_11
-    , state_cnty_fips_cd_12
-    , sex_code
-    , race_code
-    , age
-    , orig_reason_for_entitlement
-    , curr_reason_for_entitlement
-    , esrd_indicator
-    , mdcr_status_code_01
-    , mdcr_status_code_02
-    , mdcr_status_code_03
-    , mdcr_status_code_04
-    , mdcr_status_code_05
-    , mdcr_status_code_06
-    , mdcr_status_code_07
-    , mdcr_status_code_08
-    , mdcr_status_code_09
-    , mdcr_status_code_10
-    , mdcr_status_code_11
-    , mdcr_status_code_12
-    , part_a_termination_code
-    , part_b_termination_code
-    , entitlement_buy_in_ind1
-    , entitlement_buy_in_ind2
-    , entitlement_buy_in_ind3
-    , entitlement_buy_in_ind4
-    , entitlement_buy_in_ind5
-    , entitlement_buy_in_ind6
-    , entitlement_buy_in_ind7
-    , entitlement_buy_in_ind8
-    , entitlement_buy_in_ind9
-    , entitlement_buy_in_ind10
-    , entitlement_buy_in_ind11
-    , entitlement_buy_in_ind12
-    , hmo_indicator1
-    , hmo_indicator2
-    , hmo_indicator3
-    , hmo_indicator4
-    , hmo_indicator5
-    , hmo_indicator6
-    , hmo_indicator7
-    , hmo_indicator8
-    , hmo_indicator9
-    , hmo_indicator10
-    , hmo_indicator11
-    , hmo_indicator12
-    , hi_coverage
-    , smi_coverage
-    , hmo_coverage
-    , state_buy_in_coverage
-    , valid_date_of_death_switch
-    , date_of_death
-    , dual_stus_cd_01
-    , dual_stus_cd_02
-    , dual_stus_cd_03
-    , dual_stus_cd_04
-    , dual_stus_cd_05
-    , dual_stus_cd_06
-    , dual_stus_cd_07
-    , dual_stus_cd_08
-    , dual_stus_cd_09
-    , dual_stus_cd_10
-    , dual_stus_cd_11
-    , dual_stus_cd_12
-    , file_name
-    , ingest_datetime
-from {{ source('medicare_lds','master_beneficiary_summary') }}
+{% call select_from_multi_source('beneficiary') %}
+      cast(BENE_ID as {{ dbt.type_string() }}) as DESY_SORT_KEY
+    , cast(BENE_ENROLLMT_REF_YR as {{ dbt.type_numeric() }}) as REFERENCE_YEAR
+    , cast(AGE_AT_END_REF_YR as {{ dbt.type_numeric() }}) as AGE
+    , cast(SEX_IDENT_CD as {{ dbt.type_string() }}) as SEX_CODE
+    , cast(BENE_RACE_CD as {{ dbt.type_string() }}) as RACE_CODE
+    , cast(ENTLMT_RSN_ORIG as {{ dbt.type_string() }}) as ORIG_REASON_FOR_ENTITLEMENT
+    , cast(BENE_HI_CVRAGE_TOT_MONS as {{ dbt.type_numeric() }}) as HI_COVERAGE
+    , cast(BENE_SMI_CVRAGE_TOT_MONS as {{ dbt.type_numeric() }}) as SMI_COVERAGE
+    , cast(BENE_HMO_CVRAGE_TOT_MONS as {{ dbt.type_numeric() }}) as HMO_COVERAGE
+    , to_date(BENE_DEATH_DT, 'dd-MMM-yyyy') as DATE_OF_DEATH
+    , cast(STATE_CODE as {{ dbt.type_string() }}) as STATE_CODE
+
+    {% for month in range(0,12) %}
+    , case 
+        when DUAL_STUS_CD_{{"%02d"|format(month+1)}} in ('None',null) then null 
+        when DUAL_STUS_CD_{{"%02d"|format(month+1)}} in ('NA') then 'NA' 
+        else lpad(cast(DUAL_STUS_CD_{{"%02d"|format(month+1)}} AS STRING), 2, '0')
+      end as DUAL_STUS_CD_{{"%02d"|format(month+1)}}
+    {% endfor %}
+
+    {% for month in range(0,12) %}
+    ,  case 
+        when MDCR_STATUS_CODE_{{"%02d"|format(month+1)}} in ('None','NA','NULL',null) then null 
+        else cast(MDCR_STATUS_CODE_{{"%02d"|format(month+1)}} as {{ dbt.type_string() }})
+      end as MDCR_STATUS_CODE_{{"%02d"|format(month+1)}}
+    {% endfor %}
+
+
+{% endcall %}

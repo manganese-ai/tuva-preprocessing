@@ -1,94 +1,27 @@
+{{config(enabled=(not var('inpatient_only', False)))}}
 select
-      desy_sort_key
-    , claim_no
-    , prvdr_num
-    , clm_thru_dt
-    , nch_near_line_rec_ident_cd
-    , nch_clm_type_cd
-    , clm_fac_type_cd
-    , clm_srvc_clsfctn_type_cd
-    , clm_freq_cd
-    , fi_num
-    , clm_mdcr_non_pmt_rsn_cd
-    , clm_pmt_amt
-    , nch_prmry_pyr_clm_pd_amt
-    , nch_prmry_pyr_cd
-    , prvdr_state_cd
-    , org_npi_num
-    , srvc_loc_npi_num
-    , at_physn_upin
-    , at_physn_npi
-    , at_physn_spclty_cd
-    , op_physn_npi
-    , op_physn_spclty_cd
-    , ot_physn_npi
-    , ot_physn_spclty_cd
-    , rndrng_physn_npi
-    , rndrng_physn_spclty_cd
-    , rfr_physn_npi
-    , rfr_physn_spclty_cd
-    , ptnt_dschrg_stus_cd
-    , clm_tot_chrg_amt
-    , nch_ptnt_status_ind_cd
-    , clm_utlztn_day_cnt
-    , nch_bene_dschrg_dt
-    , prncpal_dgns_cd
-    , icd_dgns_cd1
-    , icd_dgns_cd2
-    , icd_dgns_cd3
-    , icd_dgns_cd4
-    , icd_dgns_cd5
-    , icd_dgns_cd6
-    , icd_dgns_cd7
-    , icd_dgns_cd8
-    , icd_dgns_cd9
-    , icd_dgns_cd10
-    , icd_dgns_cd11
-    , icd_dgns_cd12
-    , icd_dgns_cd13
-    , icd_dgns_cd14
-    , icd_dgns_cd15
-    , icd_dgns_cd16
-    , icd_dgns_cd17
-    , icd_dgns_cd18
-    , icd_dgns_cd19
-    , icd_dgns_cd20
-    , icd_dgns_cd21
-    , icd_dgns_cd22
-    , icd_dgns_cd23
-    , icd_dgns_cd24
-    , icd_dgns_cd25
-    , fst_dgns_e_cd
-    , icd_dgns_e_cd1
-    , icd_dgns_e_cd2
-    , icd_dgns_e_cd3
-    , icd_dgns_e_cd4
-    , icd_dgns_e_cd5
-    , icd_dgns_e_cd6
-    , icd_dgns_e_cd7
-    , icd_dgns_e_cd8
-    , icd_dgns_e_cd9
-    , icd_dgns_e_cd10
-    , icd_dgns_e_cd11
-    , icd_dgns_e_cd12
-    , clm_hospc_start_dt_id
-    , bene_hospc_prd_cnt
-    , dob_dt
-    , gndr_cd
-    , bene_race_cd
-    , bene_cnty_cd
-    , bene_state_cd
-    , cwf_bene_mdcr_stus_cd
-    , clm_query_cd
-    , fi_clm_actn_cd
-    , clm_trtmt_authrztn_num
-    , clm_prcr_rtrn_cd
-    , clm_next_gnrtn_aco_ind_cd1
-    , clm_next_gnrtn_aco_ind_cd2
-    , clm_next_gnrtn_aco_ind_cd3
-    , clm_next_gnrtn_aco_ind_cd4
-    , clm_next_gnrtn_aco_ind_cd5
-    , aco_id_num
-    , file_name
-    , ingest_datetime
-from {{ source('medicare_lds','hospice_base_claim') }}
+      cast(BENE_ID as {{ dbt.type_string() }}) as DESY_SORT_KEY
+    , cast(CLM_ID as {{ dbt.type_string() }}) as CLAIM_NO
+    , cast(CLM_FAC_TYPE_CD as {{ dbt.type_string() }}) as CLM_FAC_TYPE_CD
+    , cast(CLM_FREQ_CD as {{ dbt.type_string() }}) as CLM_FREQ_CD
+    , to_date(CLM_HOSPC_START_DT_ID, 'dd-MMM-yyyy') as CLM_HOSPC_START_DT_ID
+    , cast(CLM_PMT_AMT as {{ dbt.type_numeric() }}) as CLM_PMT_AMT
+    , cast(CLM_SRVC_CLSFCTN_TYPE_CD as {{ dbt.type_string() }}) as CLM_SRVC_CLSFCTN_TYPE_CD
+    , to_date(CLM_THRU_DT, 'dd-MMM-yyyy') as CLM_THRU_DT
+    , cast(CLM_TOT_CHRG_AMT as {{ dbt.type_numeric() }}) as CLM_TOT_CHRG_AMT
+    , to_date(NCH_BENE_DSCHRG_DT, 'dd-MMM-yyyy') as NCH_BENE_DSCHRG_DT
+    , cast(NCH_CLM_TYPE_CD as {{ dbt.type_string() }}) as NCH_CLM_TYPE_CD
+    , cast(NCH_PRMRY_PYR_CLM_PD_AMT as {{ dbt.type_numeric() }}) as NCH_PRMRY_PYR_CLM_PD_AMT
+    , cast(ORG_NPI_NUM as {{ dbt.type_string() }}) as ORG_NPI_NUM
+    , cast(PRNCPAL_DGNS_CD as {{ dbt.type_string() }}) as PRNCPAL_DGNS_CD
+    , case 
+        when CLM_MDCR_NON_PMT_RSN_CD = ' ' then Null 
+        else cast(CLM_MDCR_NON_PMT_RSN_CD as {{ dbt.type_string() }})
+      end as CLM_MDCR_NON_PMT_RSN_CD
+    , cast(SRVC_LOC_NPI_NUM as {{ dbt.type_string() }}) as SRVC_LOC_NPI_NUM
+
+    {% for diag in range(1,25) %}
+    , cast(ICD_DGNS_CD{{ (diag+1) }} as {{ dbt.type_string() }}) as ICD_DGNS_CD{{ (diag+1) }}
+    {% endfor %}
+
+from {{ source(var('input_database'),'hospice_2018') }} 
