@@ -38,3 +38,16 @@
     to_date( {{ cast_string_or_varchar(column_name) }}, '{{ date_format }}' )
 
 {%- endmacro -%}
+
+{%- macro duckdb__to_date(column_name, date_format) %}
+
+    {% set date_format_str = date_format | upper |
+        replace('YYYY', '%Y') | 
+        replace('MMM', '%b') | 
+        replace('MM', '%m') | 
+        replace('DD', '%d')
+    %}
+
+    strptime({{ cast_string_or_varchar(column_name) }}, '{{ date_format_str }}' )
+
+{%- endmacro -%}

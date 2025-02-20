@@ -6,7 +6,7 @@
     , cast(CLM_FREQ_CD as {{ dbt.type_string() }}) as CLM_FREQ_CD
     , cast(CLM_PMT_AMT as {{ dbt.type_numeric() }}) as CLM_PMT_AMT
     , cast(CLM_SRVC_CLSFCTN_TYPE_CD as {{ dbt.type_string() }}) as CLM_SRVC_CLSFCTN_TYPE_CD
-    , to_date(CLM_THRU_DT, 'dd-MMM-yyyy') as CLM_THRU_DT
+    , {{ to_date("CLM_THRU_DT", 'yyyy-mm-dd') }} as CLM_THRU_DT
     , cast(CLM_TOT_CHRG_AMT as {{ dbt.type_numeric() }}) as CLM_TOT_CHRG_AMT
     , cast(NCH_BENE_BLOOD_DDCTBL_LBLTY_AM as {{ dbt.type_numeric() }}) as NCH_BENE_BLOOD_DDCTBL_LBLTY_AM
     , cast(NCH_BENE_PTB_COINSRNC_AMT as {{ dbt.type_numeric() }}) as NCH_BENE_PTB_COINSRNC_AMT
@@ -32,7 +32,7 @@
     {% endfor %}
     
     {% for dt in range(0,25) %}
-    , to_date(PRCDR_DT{{ (dt+1) }}, 'dd-MMM-yyyy') as PRCDR_DT{{ (dt+1) }}
+    , {{ to_date("PRCDR_DT" ~ (dt+1), 'yyyy-mm-dd') }} as PRCDR_DT{{ (dt+1) }}
     {% endfor %}
 
 {% endcall %}

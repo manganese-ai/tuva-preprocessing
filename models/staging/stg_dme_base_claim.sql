@@ -3,7 +3,7 @@
       cast(BENE_ID as {{ dbt.type_string() }}) as DESY_SORT_KEY
     , cast(CLM_ID as {{ dbt.type_string() }}) as CLAIM_NO
     , cast(CARR_CLM_PMT_DNL_CD as {{ dbt.type_string() }}) as CARR_CLM_PMT_DNL_CD
-    , to_date(CLM_THRU_DT, 'dd-MMM-yyyy') as CLM_THRU_DT
+    , {{ to_date("CLM_THRU_DT", 'yyyy-mm-dd') }} as CLM_THRU_DT
     , cast(NCH_CLM_TYPE_CD as {{ dbt.type_string() }}) as NCH_CLM_TYPE_CD
     , cast(PRNCPAL_DGNS_CD as {{ dbt.type_string() }}) as PRNCPAL_DGNS_CD
     , cast(PRNCPAL_DGNS_VRSN_CD as {{ dbt.type_string() }}) as PRNCPAL_DGNS_VRSN_CD

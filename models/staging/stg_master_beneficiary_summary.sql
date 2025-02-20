@@ -8,7 +8,7 @@
     , cast(BENE_HI_CVRAGE_TOT_MONS as {{ dbt.type_numeric() }}) as HI_COVERAGE
     , cast(BENE_SMI_CVRAGE_TOT_MONS as {{ dbt.type_numeric() }}) as SMI_COVERAGE
     , cast(BENE_HMO_CVRAGE_TOT_MONS as {{ dbt.type_numeric() }}) as HMO_COVERAGE
-    , to_date(BENE_DEATH_DT, 'dd-MMM-yyyy') as DATE_OF_DEATH
+    , {{ to_date("BENE_DEATH_DT", 'yyyy-mm-dd') }} as DATE_OF_DEATH
     , cast(STATE_CODE as {{ dbt.type_string() }}) as STATE_CODE
 
     {% for month in range(0,12) %}

@@ -3,13 +3,13 @@
 
 {% call select_from_multi_source('medpar') %}
       cast(BENE_ID as {{ dbt.type_string() }}) as BENE_ID
-    , to_date(ADMSN_DT, 'dd-MMM-yyyy')as CLM_ADMSN_DT
+    , {{ to_date("ADMSN_DT", 'yyyy-mm-dd') }} as CLM_ADMSN_DT
     , cast(DRG_CD as {{ dbt.type_string() }}) as CLM_DRG_CD
     , cast(MDCR_PMT_AMT + PASS_THRU_AMT as {{ dbt.type_numeric() }}) as CLM_PMT_AMT
     , cast(SRC_IP_ADMSN_CD as {{ dbt.type_string() }}) as CLM_SRC_IP_ADMSN_CD
     , cast(TOT_CHRG_AMT as {{ dbt.type_numeric() }}) as CLM_TOT_CHRG_AMT
     , cast(DGNS_1_CD as {{ dbt.type_string() }}) as PRNCPAL_DGNS_CD
-    , to_date(DSCHRG_DT, 'dd-MMM-yyyy') as NCH_BENE_DSCHRG_DT
+    , {{ to_date("DSCHRG_DT", 'yyyy-mm-dd') }} as NCH_BENE_DSCHRG_DT
     , cast(BENE_DSCHRG_STUS_CD as {{ dbt.type_string() }}) as PTNT_DSCHRG_STUS_CD
     , cast(ORG_NPI_NUM as {{ dbt.type_string() }}) as ORG_NPI_NUM
 
@@ -22,7 +22,7 @@
     {% endfor %}
 
     {% for dt in range(0,25) %}
-    , to_date(SRGCL_PRCDR_PRFRM_{{ (dt+1) }}_DT, 'dd-MMM-yyyy') as PRCDR_DT{{ (dt+1) }}
+    , {{ to_date("SRGCL_PRCDR_PRFRM_" ~ (dt+1) + "_DT", 'yyyy-mm-dd') }} as PRCDR_DT{{ (dt+1) }}
     {% endfor %}
 
     /* inpatient columns */
@@ -55,11 +55,11 @@
     , cast(1 as {{ dbt.type_numeric() }} ) as CLM_LINE_NUM
 
     /** claim thru date **/
-    , case 
-      when DSCHRG_DT is not Null then to_date(DSCHRG_DT, 'dd-MMM-yyyy')
-      else to_date(date_add(ADMSN_DT,cast(LOS_DAY_CNT as integer)), 'dd-MMM-yyyy')
+    , case
+      when DSCHRG_DT is not Null then {{ to_date("DSCHRG_DT", 'yyyy-mm-dd') }}
+      else {{ to_date("date_add(ADMSN_DT, cast(LOS_DAY_CNT as integer))", 'yyyy-mm-dd') }}
       end as CLM_THRU_DT
-
+  
     /** rendering physician npi **/
     -- make physician NPI as org NPI
     , cast(ORG_NPI_NUM as {{ dbt.type_string() }}) as RNDRNG_PHYSN_NPI

@@ -28,8 +28,10 @@ clean-targets:         # directories to be removed by `dbt clean`
   - "dbt_packages"
 
 models:
+  models:
   medicare_lds_connector:
     +bind: false
     +materialized: table
     +schema: staging
-    +pre-hook: "set file_search_path = '/nfs/turbo/ihpi-cms/Wiens_ML/users/lindsay/tuva-preprocessing'"
+    staging:
+      +materialized: table

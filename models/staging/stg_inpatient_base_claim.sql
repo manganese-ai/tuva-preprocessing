@@ -3,7 +3,7 @@
 select
       cast(BENE_ID as {{ dbt.type_string() }}) as DESY_SORT_KEY
     , cast(CLM_ID as {{ dbt.type_string() }}) as CLAIM_NO
-    , to_date(CLM_ADMSN_DT, 'dd-MMM-yyyy')as CLM_ADMSN_DT
+    , {{ to_date("CLM_ADMSN_DT", 'yyyy-mm-dd') }} as CLM_ADMSN_DT
     , cast(CLM_DRG_CD as {{ dbt.type_string() }}) as CLM_DRG_CD
     , cast(CLM_FAC_TYPE_CD as {{ dbt.type_string() }}) as CLM_FAC_TYPE_CD
     , cast(CLM_FREQ_CD as {{ dbt.type_string() }}) as CLM_FREQ_CD
@@ -11,9 +11,9 @@ select
     , cast(CLM_PMT_AMT as {{ dbt.type_numeric() }}) as CLM_PMT_AMT
     , cast(CLM_SRC_IP_ADMSN_CD as {{ dbt.type_string() }}) as CLM_SRC_IP_ADMSN_CD
     , cast(CLM_SRVC_CLSFCTN_TYPE_CD as {{ dbt.type_string() }}) as CLM_SRVC_CLSFCTN_TYPE_CD
-    , to_date(CLM_THRU_DT, 'dd-MMM-yyyy') as CLM_THRU_DT
+    , {{ to_date("CLM_THRU_DT", 'yyyy-mm-dd') }} as CLM_THRU_DT
     , cast(CLM_TOT_CHRG_AMT as {{ dbt.type_numeric() }}) as CLM_TOT_CHRG_AMT
-    , to_date(NCH_BENE_DSCHRG_DT, 'dd-MMM-yyyy') as NCH_BENE_DSCHRG_DT
+    , {{ to_date("NCH_BENE_DSCHRG_DT", 'yyyy-mm-dd') }} as NCH_BENE_DSCHRG_DT
     , cast(NCH_CLM_TYPE_CD as {{ dbt.type_string() }}) as NCH_CLM_TYPE_CD
     , cast(ORG_NPI_NUM as {{ dbt.type_string() }}) as ORG_NPI_NUM
     , cast(PRNCPAL_DGNS_CD as {{ dbt.type_string() }}) as PRNCPAL_DGNS_CD
@@ -34,7 +34,7 @@ select
     {% endfor %}
 
     {% for dt in range(0,25) %}
-    , to_date(PRCDR_DT{{ (dt+1) }}, 'dd-MMM-yyyy') as PRCDR_DT{{ (dt+1) }}
+    , {{ to_date("PRCDR_DT" ~ (dt+1), 'yyyy-mm-dd') }} as PRCDR_DT{{ (dt+1) }}
     {% endfor %}
 
 from {{ ref('stg_medpar') }}
