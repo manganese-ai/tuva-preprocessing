@@ -11,4 +11,4 @@ select
     , cast(RNDRNG_PHYSN_NPI as {{ dbt.type_string() }}) as REV_CNTR_RNDRNG_PHYSN_NPI
     , cast(HCPCS_3RD_MDFR_CD as {{ dbt.type_string() }}) as HCPCS_3RD_MDFR_CD
 
-from {{ source(var('input_database'),'hospice_revs_2018') }} 
+from {{ source('medicare_lds','hospice_revs_2018') }} 

@@ -3,7 +3,7 @@
 {% set suffixes = var('years', 'all').split(',') -%}
 {% endif -%}
 ({% for s in suffixes %}
-    SELECT {{ caller() }} FROM {{source(var('input_database'), tbl+'_'+s)}}
+    SELECT {{ caller() }} FROM {{source('medicare_lds', tbl+'_'+s)}}
     {% if not loop.last %}UNION{% endif %}
 {% endfor %})
 {%- endmacro %}

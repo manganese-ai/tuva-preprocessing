@@ -24,4 +24,4 @@ select
     , cast(ICD_DGNS_CD{{ (diag+1) }} as {{ dbt.type_string() }}) as ICD_DGNS_CD{{ (diag+1) }}
     {% endfor %}
 
-from {{ source(var('input_database'),'hospice_2018') }} 
+from {{ source('medicare_lds','hospice_2018') }} 
