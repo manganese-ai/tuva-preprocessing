@@ -11,6 +11,16 @@
     , {{ to_date("BENE_DEATH_DT", 'yyyy-mm-dd') }} as DATE_OF_DEATH
     , cast(STATE_CODE as {{ dbt.type_string() }}) as STATE_CODE
 
+    /** new **/
+    , cast(SAMPLE_GROUP as {{ dbt.type_numeric() }}) as SAMPLE_GROUP
+    , cast(COUNTY_CD as {{ dbt.type_string() }}) as COUNTY_CD
+    , cast(ENTLMT_RSN_CURR as {{ dbt.type_string() }}) as CURR_REASON_FOR_ENTITLEMENT
+    , cast(ESRD_IND as {{ dbt.type_string() }}) as ESRD_INDICATOR
+    , cast(BENE_PTA_TRMNTN_CD as {{ dbt.type_string() }}) as PART_A_TERMINATION_CODE
+    , cast(BENE_PTB_TRMNTN_CD as {{ dbt.type_string() }}) as PART_B_TERMINATION_CODE
+    , cast(BENE_STATE_BUYIN_TOT_MONS as {{ dbt.type_string() }}) as STATE_BUY_IN_COVERAGE
+    , cast(VALID_DEATH_DT_SW as {{ dbt.type_string() }}) as VALID_DATE_OF_DEATH_SWITCH
+
     {% for month in range(0,12) %}
     , case 
         when DUAL_STUS_CD_{{"%02d"|format(month+1)}} in ('None',null) then null 
@@ -26,5 +36,26 @@
       end as MDCR_STATUS_CODE_{{"%02d"|format(month+1)}}
     {% endfor %}
 
+    /** new **/
+    {% for month in range(0,12) %}
+    ,  case 
+        when STATE_CNTY_FIPS_CD_{{"%02d"|format(month+1)}} in ('None','NA','NULL',null) then null 
+        else cast(STATE_CNTY_FIPS_CD_{{"%02d"|format(month+1)}} as {{ dbt.type_string() }})
+      end as STATE_CNTY_FIPS_CD_{{"%02d"|format(month+1)}}
+    {% endfor %}
+
+    {% for month in range(0,12) %}
+    ,  case 
+        when MDCR_ENTLMT_BUYIN_IND_{{"%02d"|format(month+1)}} in ('None','NA','NULL',null) then null 
+        else cast(MDCR_ENTLMT_BUYIN_IND_{{"%02d"|format(month+1)}} as {{ dbt.type_string() }})
+      end as ENTITLEMENT_BUY_IN_IND{{ month+1 }}
+    {% endfor %}
+
+    {% for month in range(0,12) %}
+    ,  case 
+        when HMO_IND_{{"%02d"|format(month+1)}} in ('None','NA','NULL',null) then null 
+        else cast(HMO_IND_{{"%02d"|format(month+1)}} as {{ dbt.type_string() }})
+      end as HMO_INDICATOR{{ month+1 }}
+    {% endfor %}
 
 {% endcall %}
