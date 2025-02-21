@@ -5,7 +5,7 @@ sources:
     database: "{{ var('input_database') }}"
     schema:  "{{ var('input_schema') }}"
     config:
-      external_location: "read_parquet('/nfs/turbo/ihpi-cms/Wiens_ML/users/lindsay/tuva-preprocessing/seeds/milli/{identifier}.parquet/*.parquet')"
+      external_location: "read_parquet('/nfs/turbo/ihpi-cms/Wiens_ML/users/lindsay/tuva-preprocessing/seeds/{{ var('input_database') }}/{identifier}.parquet/*.parquet')"
     tables:
       # outpatient
       - name: beneficiary_2018

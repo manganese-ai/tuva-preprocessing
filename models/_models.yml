@@ -4,7 +4,7 @@ models:
 
 ### final
   - name: eligibility
-    description: Member eligibility at the month grain
+    description: Our Franklin cohort, but with decedents in 2019
     config:
       schema: |
         {%- if var('tuva_schema_prefix',None) != None -%}{{var('tuva_schema_prefix')}}_input_layer{% else %}input_layer{%- endif -%}

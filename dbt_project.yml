@@ -13,7 +13,6 @@ vars:
   years: 2018,2019
   outpatient_only: false
   inpatient_only: false
-  # patient_id_suffix: sK2
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
