@@ -13,4 +13,7 @@
     , cast(HCPCS_3RD_MDFR_CD as {{ dbt.type_string() }}) as HCPCS_3RD_MDFR_CD
     , cast(HCPCS_4TH_MDFR_CD as {{ dbt.type_string() }}) as HCPCS_4TH_MDFR_CD
 
+    /** new **/
+    , {{ to_date("REV_CNTR_DT", 'yyyy-mm-dd') }} as REV_CNTR_DT
+
 {% endcall %}

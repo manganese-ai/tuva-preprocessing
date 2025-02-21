@@ -1,7 +1,7 @@
 with dme_base_claim as (
 
     select *
-         , left(clm_thru_dt,4) as clm_thru_dt_year
+         , left({{ cast_string_or_varchar('clm_thru_dt') }},4) as clm_thru_dt_year
     from {{ ref('stg_dme_base_claim') }}
     where carr_clm_pmt_dnl_cd <> '0'
     /** filter out denied claims **/
@@ -34,8 +34,8 @@ select
     , {{ try_to_cast_date('b.clm_thru_dt', 'YYYYMMDD') }} as claim_end_date
     , {{ try_to_cast_date('l.line_last_expns_dt', 'YYYYMMDD') }} as claim_line_start_date
     , {{ try_to_cast_date('l.line_last_expns_dt', 'YYYYMMDD') }} as claim_line_end_date
-    , date(NULL) as admission_date
-    , date(NULL) as discharge_date
+    , cast(NULL as date) as admission_date
+    , cast(NULL as date) as discharge_date
     , cast(NULL as {{ dbt.type_string() }} ) as admit_source_code
     , cast(NULL as {{ dbt.type_string() }} ) as admit_type_code
     , cast(NULL as {{ dbt.type_string() }} ) as discharge_disposition_code
@@ -44,7 +44,7 @@ select
     , cast(NULL as {{ dbt.type_string() }} ) as ms_drg_code
     , cast(NULL as {{ dbt.type_string() }} ) as apr_drg_code
     , cast(NULL as {{ dbt.type_string() }} ) as revenue_center_code
-    , cast(regexp_substr(l.line_srvc_cnt,'.') as integer) as service_unit_quantity
+    , cast(regexp_extract(cast(l.line_srvc_cnt as varchar),'.') as integer) as service_unit_quantity
     , cast(l.hcpcs_cd as {{ dbt.type_string() }} ) as hcpcs_code
     , cast(l.hcpcs_1st_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_1
     , cast(l.hcpcs_2nd_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_2
@@ -56,7 +56,7 @@ select
     , cast(l.prvdr_npi as {{ dbt.type_string() }} ) as billing_npi
     , cast(NULL as {{ dbt.type_string() }} ) as billing_tin
     , cast(NULL as {{ dbt.type_string() }} ) as facility_npi
-    , date(NULL) as paid_date
+    , cast(NULL as date) as paid_date
     , cast(l.line_nch_pmt_amt as {{ dbt.type_numeric() }}) as paid_amount
     , cast(null as {{ dbt.type_numeric() }}) as allowed_amount
     , cast(l.line_alowd_chrg_amt as {{ dbt.type_numeric() }}) as charge_amount
@@ -150,35 +150,35 @@ select
     , cast(NULL as {{ dbt.type_string() }} ) as procedure_code_23
     , cast(NULL as {{ dbt.type_string() }} ) as procedure_code_24
     , cast(NULL as {{ dbt.type_string() }} ) as procedure_code_25
-    , date(NULL) as procedure_date_1
-    , date(NULL) as procedure_date_2
-    , date(NULL) as procedure_date_3
-    , date(NULL) as procedure_date_4
-    , date(NULL) as procedure_date_5
-    , date(NULL) as procedure_date_6
-    , date(NULL) as procedure_date_7
-    , date(NULL) as procedure_date_8
-    , date(NULL) as procedure_date_9
-    , date(NULL) as procedure_date_10
-    , date(NULL) as procedure_date_11
-    , date(NULL) as procedure_date_12
-    , date(NULL) as procedure_date_13
-    , date(NULL) as procedure_date_14
-    , date(NULL) as procedure_date_15
-    , date(NULL) as procedure_date_16
-    , date(NULL) as procedure_date_17
-    , date(NULL) as procedure_date_18
-    , date(NULL) as procedure_date_19
-    , date(NULL) as procedure_date_20
-    , date(NULL) as procedure_date_21
-    , date(NULL) as procedure_date_22
-    , date(NULL) as procedure_date_23
-    , date(NULL) as procedure_date_24
-    , date(NULL) as procedure_date_25
+    , cast(NULL as date) as procedure_date_1
+    , cast(NULL as date) as procedure_date_2
+    , cast(NULL as date) as procedure_date_3
+    , cast(NULL as date) as procedure_date_4
+    , cast(NULL as date) as procedure_date_5
+    , cast(NULL as date) as procedure_date_6
+    , cast(NULL as date) as procedure_date_7
+    , cast(NULL as date) as procedure_date_8
+    , cast(NULL as date) as procedure_date_9
+    , cast(NULL as date) as procedure_date_10
+    , cast(NULL as date) as procedure_date_11
+    , cast(NULL as date) as procedure_date_12
+    , cast(NULL as date) as procedure_date_13
+    , cast(NULL as date) as procedure_date_14
+    , cast(NULL as date) as procedure_date_15
+    , cast(NULL as date) as procedure_date_16
+    , cast(NULL as date) as procedure_date_17
+    , cast(NULL as date) as procedure_date_18
+    , cast(NULL as date) as procedure_date_19
+    , cast(NULL as date) as procedure_date_20
+    , cast(NULL as date) as procedure_date_21
+    , cast(NULL as date) as procedure_date_22
+    , cast(NULL as date) as procedure_date_23
+    , cast(NULL as date) as procedure_date_24
+    , cast(NULL as date) as procedure_date_25
     , cast(1 as int) as in_network_flag
     , 'medicare_lds' as data_source
-    , cast(b.file_name as {{ dbt.type_string() }} ) as file_name
-    , cast(b.ingest_datetime as {{ dbt.type_timestamp() }} ) as ingest_datetime
+    -- , cast(b.file_name as {{ dbt.type_string() }} ) as file_name
+    -- , cast(b.ingest_datetime as {{ dbt.type_timestamp() }} ) as ingest_datetime
 from dme_base_claim as b
     inner join {{ ref('stg_dme_claim_line') }} as l
         on b.claim_no = l.claim_no

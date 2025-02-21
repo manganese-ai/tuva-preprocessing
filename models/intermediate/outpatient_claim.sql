@@ -1,7 +1,7 @@
 with outpatient_base_claim as (
 
     select *
-         , left(clm_thru_dt,4) as clm_thru_dt_year
+         , left({{ cast_string_or_varchar('clm_thru_dt') }},4) as clm_thru_dt_year
     from {{ ref('stg_outpatient_base_claim') }}
     where clm_mdcr_non_pmt_rsn_cd is null
     /** filter out denied claims **/
@@ -52,8 +52,8 @@ select
     , {{ try_to_cast_date('b.clm_thru_dt', 'YYYYMMDD') }} as claim_end_date
     , {{ try_to_cast_date('l.rev_cntr_dt', 'YYYYMMDD') }} as claim_line_start_date
     , {{ try_to_cast_date('l.rev_cntr_dt', 'YYYYMMDD') }} as claim_line_end_date
-    , date(NULL) as admission_date
-    , date(NULL) as discharge_date
+    , cast(NULL as date) as admission_date
+    , cast(NULL as date) as discharge_date
     , cast(NULL as {{ dbt.type_string() }} ) as admit_source_code
     , cast(NULL as {{ dbt.type_string() }} ) as admit_type_code
     , cast(b.ptnt_dschrg_stus_cd as {{ dbt.type_string() }} ) as discharge_disposition_code
@@ -65,7 +65,7 @@ select
     , cast(NULL as {{ dbt.type_string() }} ) as ms_drg_code
     , cast(NULL as {{ dbt.type_string() }} ) as apr_drg_code
     , cast(l.rev_cntr as {{ dbt.type_string() }} ) as revenue_center_code
-    , cast(regexp_substr(l.rev_cntr_unit_cnt, '.') as integer) as service_unit_quantity
+    , cast(regexp_extract(cast(l.rev_cntr_unit_cnt as varchar),'.') as integer) as service_unit_quantity
     , cast(l.hcpcs_cd as {{ dbt.type_string() }} ) as hcpcs_code
     , cast(l.hcpcs_1st_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_1
     , cast(l.hcpcs_2nd_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_2
@@ -77,7 +77,7 @@ select
     , cast(b.org_npi_num as {{ dbt.type_string() }} ) as billing_npi
     , cast(NULL as {{ dbt.type_string() }} ) as billing_tin
     , cast(coalesce(b.org_npi_num,b.srvc_loc_npi_num) as {{ dbt.type_string() }} ) as facility_npi
-    , date(NULL) as paid_date
+    , cast(NULL as date) as paid_date
     , coalesce(
             p.paid_amount
             , cast(0 as {{ dbt.type_numeric() }})
@@ -192,8 +192,8 @@ select
     , {{ try_to_cast_date('b.prcdr_dt25', 'YYYYMMDD') }} as procedure_date_25
     , cast(1 as int) as in_network_flag
     , 'medicare_lds' as data_source
-    , cast(b.file_name as {{ dbt.type_string() }} ) as file_name
-    , cast(b.ingest_datetime as {{ dbt.type_timestamp() }} ) as ingest_datetime
+    -- , cast(b.file_name as {{ dbt.type_string() }} ) as file_name
+    -- , cast(b.ingest_datetime as {{ dbt.type_timestamp() }} ) as ingest_datetime
 from outpatient_base_claim as b
     inner join {{ ref('stg_outpatient_revenue_center') }} as l
         on b.claim_no = l.claim_no

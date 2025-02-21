@@ -1,7 +1,7 @@
 with hospice_base_claim as (
 
     select *
-         , left(clm_thru_dt,4) as clm_thru_dt_year
+         , left({{ cast_string_or_varchar('clm_thru_dt') }},4) as clm_thru_dt_year
     from {{ ref('stg_hospice_base_claim') }}
     where clm_mdcr_non_pmt_rsn_cd is null
     /** filter out denied claims **/
@@ -62,7 +62,7 @@ select
     , cast(NULL as {{ dbt.type_string() }} ) as ms_drg_code
     , cast(NULL as {{ dbt.type_string() }} ) as apr_drg_code
     , cast(l.rev_cntr as {{ dbt.type_string() }} ) as revenue_center_code
-    , cast(regexp_substr(l.rev_cntr_unit_cnt, '.') as integer) as service_unit_quantity
+    , cast(regexp_extract(cast(l.rev_cntr_unit_cnt as varchar),'.') as integer) as service_unit_quantity
     , cast(l.hcpcs_cd as {{ dbt.type_string() }} ) as hcpcs_code
     , cast(l.hcpcs_1st_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_1
     , cast(l.hcpcs_2nd_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_2
@@ -74,7 +74,7 @@ select
     , cast(b.org_npi_num as {{ dbt.type_string() }} ) as billing_npi
     , cast(NULL as {{ dbt.type_string() }} ) as billing_tin
     , cast(coalesce(b.org_npi_num,b.srvc_loc_npi_num) as {{ dbt.type_string() }} ) as facility_npi
-    , date(NULL) as paid_date
+    , cast(NULL as date) as paid_date
     , p.paid_amount as paid_amount
     , cast(NULL as {{ dbt.type_numeric() }}) as allowed_amount
     , p.charge_amount as charge_amount
@@ -159,35 +159,35 @@ select
     , cast(NULL as {{ dbt.type_string() }} ) as procedure_code_23
     , cast(NULL as {{ dbt.type_string() }} ) as procedure_code_24
     , cast(NULL as {{ dbt.type_string() }} ) as procedure_code_25
-    , date(NULL) as procedure_date_1
-    , date(NULL) as procedure_date_2
-    , date(NULL) as procedure_date_3
-    , date(NULL) as procedure_date_4
-    , date(NULL) as procedure_date_5
-    , date(NULL) as procedure_date_6
-    , date(NULL) as procedure_date_7
-    , date(NULL) as procedure_date_8
-    , date(NULL) as procedure_date_9
-    , date(NULL) as procedure_date_10
-    , date(NULL) as procedure_date_11
-    , date(NULL) as procedure_date_12
-    , date(NULL) as procedure_date_13
-    , date(NULL) as procedure_date_14
-    , date(NULL) as procedure_date_15
-    , date(NULL) as procedure_date_16
-    , date(NULL) as procedure_date_17
-    , date(NULL) as procedure_date_18
-    , date(NULL) as procedure_date_19
-    , date(NULL) as procedure_date_20
-    , date(NULL) as procedure_date_21
-    , date(NULL) as procedure_date_22
-    , date(NULL) as procedure_date_23
-    , date(NULL) as procedure_date_24
-    , date(NULL) as procedure_date_25
+    , cast(NULL as date) as procedure_date_1
+    , cast(NULL as date) as procedure_date_2
+    , cast(NULL as date) as procedure_date_3
+    , cast(NULL as date) as procedure_date_4
+    , cast(NULL as date) as procedure_date_5
+    , cast(NULL as date) as procedure_date_6
+    , cast(NULL as date) as procedure_date_7
+    , cast(NULL as date) as procedure_date_8
+    , cast(NULL as date) as procedure_date_9
+    , cast(NULL as date) as procedure_date_10
+    , cast(NULL as date) as procedure_date_11
+    , cast(NULL as date) as procedure_date_12
+    , cast(NULL as date) as procedure_date_13
+    , cast(NULL as date) as procedure_date_14
+    , cast(NULL as date) as procedure_date_15
+    , cast(NULL as date) as procedure_date_16
+    , cast(NULL as date) as procedure_date_17
+    , cast(NULL as date) as procedure_date_18
+    , cast(NULL as date) as procedure_date_19
+    , cast(NULL as date) as procedure_date_20
+    , cast(NULL as date) as procedure_date_21
+    , cast(NULL as date) as procedure_date_22
+    , cast(NULL as date) as procedure_date_23
+    , cast(NULL as date) as procedure_date_24
+    , cast(NULL as date) as procedure_date_25
     , cast(1 as int) as in_network_flag
     , 'medicare_lds' as data_source
-    , cast(b.file_name as {{ dbt.type_string() }} ) as file_name
-    , cast(b.ingest_datetime as {{ dbt.type_timestamp() }} ) as ingest_datetime
+    -- , cast(b.file_name as {{ dbt.type_string() }} ) as file_name
+    -- , cast(b.ingest_datetime as {{ dbt.type_timestamp() }} ) as ingest_datetime
 from hospice_base_claim as b
     inner join {{ ref('stg_hospice_revenue_center') }} as l
         on b.claim_no = l.claim_no
