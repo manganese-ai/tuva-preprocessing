@@ -34,6 +34,7 @@ select
       b.claim_id
     , cast(l.clm_line_num as integer) as claim_line_number
     , 'institutional' as claim_type
+    , cast('inpatient' as {{ dbt.type_string() }} ) as claim_category
     , cast(b.desy_sort_key as {{ dbt.type_string() }} ) as person_id
     , cast(b.desy_sort_key as {{ dbt.type_string() }} ) as member_id
     , cast('medicare' as {{ dbt.type_string() }} ) as payer

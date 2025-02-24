@@ -25,6 +25,7 @@ with eligibility as (
         u.claim_id
         , u.claim_line_number
         , u.claim_type
+        , u.claim_category
         , u.person_id
         , u.member_id
         , u.payer

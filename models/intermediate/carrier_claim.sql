@@ -26,6 +26,7 @@ select
       as claim_id
     , cast(l.line_num as integer) as claim_line_number
     , 'professional' as claim_type
+    , cast('carrier' as {{ dbt.type_string() }} ) as claim_category
     , cast(b.desy_sort_key as {{ dbt.type_string() }} ) as person_id
     , cast(b.desy_sort_key as {{ dbt.type_string() }} ) as member_id
     , cast('medicare' as {{ dbt.type_string() }} ) as payer

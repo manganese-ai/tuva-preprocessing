@@ -21,11 +21,11 @@ sources:
       - name: hha_revs_2019
         identifier: hharevcntr19
       - name: hospice_2018
-        identifier: hospice_clms18
+        identifier: hosp_clms18
       # - name: hospice_2019
       #   identifier: 
       - name: hospice_revs_2018
-        identifier: hospice_revcntr18
+        identifier: hosp_revcntr18
       # - name: hospice_revs_2019
       #   identifier: 
       - name: outpatient_2018

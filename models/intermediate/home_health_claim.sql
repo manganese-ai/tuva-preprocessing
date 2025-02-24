@@ -39,16 +39,17 @@ select
         || cast(b.clm_thru_dt_year as {{ dbt.type_string() }} )
         || cast(b.nch_clm_type_cd as {{ dbt.type_string() }} )
       as claim_id
-    , cast(l.clm_line_num as integer) as claim_line_number
+    -- , cast(l.clm_line_num as integer) as claim_line_number
     , 'institutional' as claim_type
+    , cast('home_health' as {{ dbt.type_string() }} ) as claim_category
     , cast(b.desy_sort_key as {{ dbt.type_string() }} ) as person_id
     , cast(b.desy_sort_key as {{ dbt.type_string() }} ) as member_id
     , cast('medicare' as {{ dbt.type_string() }} ) as payer
     , cast('medicare' as {{ dbt.type_string() }} ) as plan
     , {{ try_to_cast_date('s.claim_start_date', 'YYYYMMDD') }} as claim_start_date
     , {{ try_to_cast_date('b.clm_thru_dt', 'YYYYMMDD') }} as claim_end_date
-    , {{ try_to_cast_date('l.rev_cntr_dt', 'YYYYMMDD') }} as claim_line_start_date
-    , {{ try_to_cast_date('l.rev_cntr_dt', 'YYYYMMDD') }} as claim_line_end_date
+    -- , {{ try_to_cast_date('l.rev_cntr_dt', 'YYYYMMDD') }} as claim_line_start_date
+    -- , {{ try_to_cast_date('l.rev_cntr_dt', 'YYYYMMDD') }} as claim_line_end_date
     , {{ try_to_cast_date('b.clm_admsn_dt', 'YYYYMMDD') }} as admission_date
     , {{ try_to_cast_date('b.nch_bene_dschrg_dt', 'YYYYMMDD') }} as discharge_date
     , cast(NULL as {{ dbt.type_string() }} ) as admit_source_code
@@ -61,27 +62,27 @@ select
       as bill_type_code
     , cast(NULL as {{ dbt.type_string() }} ) as ms_drg_code
     , cast(NULL as {{ dbt.type_string() }} ) as apr_drg_code
-    , cast(l.rev_cntr as {{ dbt.type_string() }} ) as revenue_center_code
-    , cast(regexp_extract(cast(l.rev_cntr_unit_cnt as varchar),'.') as integer) as service_unit_quantity
-    , cast(l.hcpcs_cd as {{ dbt.type_string() }} ) as hcpcs_code
-    , cast(l.hcpcs_1st_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_1
-    , cast(l.hcpcs_2nd_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_2
-    , cast(l.hcpcs_3rd_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_3
+    -- , cast(l.rev_cntr as {{ dbt.type_string() }} ) as revenue_center_code
+    -- , cast(regexp_extract(cast(l.rev_cntr_unit_cnt as varchar),'.') as integer) as service_unit_quantity
+    -- , cast(l.hcpcs_cd as {{ dbt.type_string() }} ) as hcpcs_code
+    -- , cast(l.hcpcs_1st_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_1
+    -- , cast(l.hcpcs_2nd_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_2
+    -- , cast(l.hcpcs_3rd_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_3
     , cast(NULL as {{ dbt.type_string() }} ) as hcpcs_modifier_4
     , cast(NULL as {{ dbt.type_string() }} ) as hcpcs_modifier_5
-    , cast(l.rev_cntr_rndrng_physn_npi as {{ dbt.type_string() }} ) as rendering_npi
+    -- , cast(l.rev_cntr_rndrng_physn_npi as {{ dbt.type_string() }} ) as rendering_npi
     , cast(NULL as {{ dbt.type_string() }} ) as rendering_tin
     , cast(b.org_npi_num as {{ dbt.type_string() }} ) as billing_npi
     , cast(NULL as {{ dbt.type_string() }} ) as billing_tin
     , cast(coalesce(b.org_npi_num,b.srvc_loc_npi_num) as {{ dbt.type_string() }} ) as facility_npi
     , cast(NULL as date) as paid_date
-    , p.paid_amount as paid_amount
+    -- , p.paid_amount as paid_amount
     , cast(NULL as {{ dbt.type_numeric() }}) as allowed_amount
-    , p.charge_amount as charge_amount
+    -- , p.charge_amount as charge_amount
     , cast(null as {{ dbt.type_numeric() }}) as coinsurance_amount
     , cast(null as {{ dbt.type_numeric() }}) as copayment_amount
     , cast(null as {{ dbt.type_numeric() }}) as deductible_amount
-    , p.total_cost_amount as total_cost_amount
+    -- , p.total_cost_amount as total_cost_amount
     , 'icd-10-cm' as diagnosis_code_type
     , cast(b.prncpal_dgns_cd as {{ dbt.type_string() }} ) as diagnosis_code_1
     , cast(b.icd_dgns_cd2 as {{ dbt.type_string() }} ) as diagnosis_code_2
@@ -194,6 +195,6 @@ from hha_base_claim as b
     /* Payment is provided at the header level only.  Populating on revenue center 001 to avoid duplication. */
     left join header_payment as p
         on b.claim_no = p.claim_id
-        and l.rev_cntr = '0001'
+        -- and l.rev_cntr = '0001'
     left join claim_start_date as s
         on b.claim_no = s.claim_no
