@@ -69,9 +69,17 @@ select
     , cast(NULL as {{ dbt.type_string() }} ) as billing_tin
     , cast(b.org_npi_num as {{ dbt.type_string() }} ) as facility_npi
     , cast(NULL as date) as paid_date
-    , coalesce(p.paid_amount,cast(0 as {{ dbt.type_numeric() }})) as paid_amount
+    -- , coalesce(p.paid_amount,cast(0 as {{ dbt.type_numeric() }})) as paid_amount
     , cast(NULL as {{ dbt.type_numeric() }}) as allowed_amount
-    , p.charge_amount as charge_amount
+    -- , p.charge_amount as charge_amount
+    , case when l.rev_cntr = '0001'
+        then coalesce(p.paid_amount,cast(0 as {{ dbt.type_numeric() }}))
+        else NULL 
+      end as paid_amount
+    , case when l.rev_cntr = '0001' 
+        then p.charge_amount 
+        else NULL 
+      end as charge_amount
     , cast(null as {{ dbt.type_numeric() }}) as coinsurance_amount
     , cast(null as {{ dbt.type_numeric() }}) as copayment_amount
     , cast(null as {{ dbt.type_numeric() }}) as deductible_amount
@@ -179,13 +187,13 @@ select
     , {{ try_to_cast_date('b.prcdr_dt24', 'YYYYMMDD') }} as procedure_date_24
     , {{ try_to_cast_date('b.prcdr_dt25', 'YYYYMMDD') }} as procedure_date_25
     , cast(1 as int) as in_network_flag
-    , 'medicare_lds' as data_source
-    -- , cast(b.file_name as {{ dbt.type_string() }} ) as file_name
-    -- , cast(b.ingest_datetime as {{ dbt.type_timestamp() }} ) as ingest_datetime
+    , cast('medicare_lds' as {{ dbt.type_string() }} ) as data_source
+    , cast(NULL as {{ dbt.type_string() }} ) as file_name
+    , cast(NULL as {{ dbt.type_timestamp() }} ) as ingest_datetime
 from add_claim_id as b
     inner join {{ ref('stg_inpatient_revenue_center') }} as l
         on b.claim_no = l.claim_no
     /* Payment is provided at the header level only.  Populating on revenue center 0001 to avoid duplication. */
     left join header_payment as p
         on b.claim_id = p.claim_id
-        and l.rev_cntr = '0001'
+        -- and l.rev_cntr = '0001'

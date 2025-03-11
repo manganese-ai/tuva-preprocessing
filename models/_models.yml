@@ -25,6 +25,15 @@ models:
       materialized: table
 
 ### intermediate
+  - name: eligibility_unpivot
+    description: >
+      Transformation model to unpivot the Master Beneficiary Summary File 
+      on DUAL_STUS_CD and MDCR_STATUS_CODE creating a row for each year/month 
+      of eligibility.
+    config:
+      schema: |
+        {%- if var('tuva_schema_prefix',None) != None -%}_{{var('tuva_schema_prefix')}}_int_input_layer{% else %}_int_input_layer{%- endif -%}
+
   - name: carrier_claim
     description: Claim line details of carrier claims
     config:
@@ -33,15 +42,6 @@ models:
 
   - name: dme_claim
     description: Claim line details of durable medical equipment claims
-    config:
-      schema: |
-        {%- if var('tuva_schema_prefix',None) != None -%}_{{var('tuva_schema_prefix')}}_int_input_layer{% else %}_int_input_layer{%- endif -%}
-
-  - name: eligibility_unpivot
-    description: >
-      Transformation model to unpivot the Master Beneficiary Summary File 
-      on DUAL_STUS_CD and MDCR_STATUS_CODE creating a row for each year/month 
-      of eligibility.
     config:
       schema: |
         {%- if var('tuva_schema_prefix',None) != None -%}_{{var('tuva_schema_prefix')}}_int_input_layer{% else %}_int_input_layer{%- endif -%}
@@ -77,6 +77,12 @@ models:
         {%- if var('tuva_schema_prefix',None) != None -%}_{{var('tuva_schema_prefix')}}_int_input_layer{% else %}_int_input_layer{%- endif -%}
 
 ### staging
+  - name: stg_eligibility
+    description: Our Franklin cohort, but with decedents in 2019
+    config:
+      schema: |
+        {%- if var('tuva_schema_prefix',None) != None -%}_{{var('tuva_schema_prefix')}}_stg_input_layer{% else %}_stg_input_layer{%- endif -%}
+    
   - name: stg_carrier_base_claim
     description: Staging carrier base claim
     config:
@@ -139,6 +145,12 @@ models:
 
   - name: stg_master_beneficiary_summary
     description: Staging master beneficiary summary
+    config:
+      schema: |
+        {%- if var('tuva_schema_prefix',None) != None -%}_{{var('tuva_schema_prefix')}}_stg_input_layer{% else %}_stg_input_layer{%- endif -%}
+
+  - name: stg_medpar
+    description: Staging medpar
     config:
       schema: |
         {%- if var('tuva_schema_prefix',None) != None -%}_{{var('tuva_schema_prefix')}}_stg_input_layer{% else %}_stg_input_layer{%- endif -%}

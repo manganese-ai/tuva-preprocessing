@@ -22,12 +22,12 @@ sources:
         identifier: hharevcntr19
       - name: hospice_2018
         identifier: hosp_clms18
-      # - name: hospice_2019
-      #   identifier: 
+      - name: hospice_2019
+        identifier: hosp_clms19
       - name: hospice_revs_2018
         identifier: hosp_revcntr18
-      # - name: hospice_revs_2019
-      #   identifier: 
+      - name: hospice_revs_2019
+        identifier: hosp_revcntr19
       - name: outpatient_2018
         identifier: op18clms
       - name: outpatient_2019
@@ -58,4 +58,3 @@ sources:
         identifier: med18p20
       - name: medpar_2019
         identifier: med19p20
-  

@@ -177,9 +177,9 @@ select
     , cast(NULL as date) as procedure_date_24
     , cast(NULL as date) as procedure_date_25
     , cast(1 as int) as in_network_flag
-    , 'medicare_lds' as data_source
-    -- , cast(b.file_name as {{ dbt.type_string() }} ) as file_name
-    -- , cast(b.ingest_datetime as {{ dbt.type_timestamp() }} ) as ingest_datetime
+    , cast('medicare_lds' as {{ dbt.type_string() }} ) as data_source
+    , cast(NULL as {{ dbt.type_string() }} ) as file_name
+    , cast(NULL as {{ dbt.type_timestamp() }} ) as ingest_datetime
 from dme_base_claim as b
     inner join {{ ref('stg_dme_claim_line') }} as l
         on b.claim_no = l.claim_no

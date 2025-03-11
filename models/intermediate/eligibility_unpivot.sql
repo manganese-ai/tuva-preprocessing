@@ -9,7 +9,7 @@ with demographics as (
     select
           desy_sort_key
         , right(month,2) as month
-        , reference_year as year
+        , cast(reference_year as int) as year
         , dual_status as dual_status
     from demographics
     unpivot(
@@ -34,7 +34,7 @@ with demographics as (
     select
           desy_sort_key
         , right(month,2) as month
-        , reference_year as year
+        , cast(reference_year as int) as year
         , medicare_status
     from demographics
     unpivot(
@@ -61,7 +61,7 @@ with demographics as (
         , case when length(month) = 14 then substring(month, 14, 1)  -- 'entitlement_buy_in_ind1' -> '1'
                when length(month) = 15 then substring(month, 14, 2)  -- 'entitlement_buy_in_ind10' -> '10'
                else null end as month
-        , reference_year as year
+        , cast(reference_year as int) as year
         , hmo_status
     from demographics
     unpivot(
@@ -88,7 +88,7 @@ with demographics as (
         , case when length(month) = 23 then substring(month, 23, 1)  -- 'entitlement_buy_in_ind1' -> '1'
                when length(month) = 24 then substring(month, 23, 2)  -- 'entitlement_buy_in_ind10' -> '10'
                else null end as month
-        , reference_year as year
+        , cast(reference_year as int) as year
         , entitlement
     from demographics
     unpivot(
@@ -123,19 +123,19 @@ select
     , unpivot_dual_status.dual_status as dual_status
     , unpivot_medicare_status.medicare_status as medicare_status
     , unpivot_dual_status.month as month
-    , unpivot_dual_status.year as year
+    , cast(unpivot_dual_status.year as int) as year
     , concat(
-          unpivot_dual_status.year
+          cast(unpivot_dual_status.year as int)
         , unpivot_dual_status.month
       ) as year_month
     , unpivot_hmo_status.hmo_status
     , unpivot_entitlement.entitlement
-    -- , demographics.file_name
-    -- , demographics.ingest_datetime
+    , demographics.file_name
+    , demographics.ingest_datetime
 from demographics
      inner join unpivot_dual_status
          on demographics.desy_sort_key = unpivot_dual_status.desy_sort_key
-         and demographics.reference_year = unpivot_dual_status.year
+         and cast(demographics.reference_year as int) = cast(unpivot_dual_status.year as int)
      left join unpivot_medicare_status
          on unpivot_dual_status.desy_sort_key = unpivot_medicare_status.desy_sort_key
          and unpivot_dual_status.month = unpivot_medicare_status.month

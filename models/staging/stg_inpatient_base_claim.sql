@@ -1,7 +1,8 @@
 {{config(enabled=(not var('outpatient_only', False)))}}
 
-select
-      cast(BENE_ID as {{ dbt.type_string() }}) as DESY_SORT_KEY
+with inpatient as (
+  select
+      cast(DESY_SORT_KEY as {{ dbt.type_string() }}) as DESY_SORT_KEY
     , cast(CLM_ID as {{ dbt.type_string() }}) as CLAIM_NO
     , {{ to_date("CLM_ADMSN_DT", 'yyyy-mm-dd') }} as CLM_ADMSN_DT
     , cast(CLM_DRG_CD as {{ dbt.type_string() }}) as CLM_DRG_CD
@@ -39,3 +40,9 @@ select
 
 from {{ ref('stg_medpar') }}
 where SS_LS_SNF_IND_CD in ('L','S')
+)
+select * from inpatient
+inner join {{ ref('stg_eligibility') }} e
+    on inpatient.DESY_SORT_KEY = e.patient_id
+
+{{patient_id_subselect()}}

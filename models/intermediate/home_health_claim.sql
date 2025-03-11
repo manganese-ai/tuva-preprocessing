@@ -39,7 +39,7 @@ select
         || cast(b.clm_thru_dt_year as {{ dbt.type_string() }} )
         || cast(b.nch_clm_type_cd as {{ dbt.type_string() }} )
       as claim_id
-    -- , cast(l.clm_line_num as integer) as claim_line_number
+    , cast(l.clm_line_num as integer) as claim_line_number
     , 'institutional' as claim_type
     , cast('home_health' as {{ dbt.type_string() }} ) as claim_category
     , cast(b.desy_sort_key as {{ dbt.type_string() }} ) as person_id
@@ -48,8 +48,8 @@ select
     , cast('medicare' as {{ dbt.type_string() }} ) as plan
     , {{ try_to_cast_date('s.claim_start_date', 'YYYYMMDD') }} as claim_start_date
     , {{ try_to_cast_date('b.clm_thru_dt', 'YYYYMMDD') }} as claim_end_date
-    -- , {{ try_to_cast_date('l.rev_cntr_dt', 'YYYYMMDD') }} as claim_line_start_date
-    -- , {{ try_to_cast_date('l.rev_cntr_dt', 'YYYYMMDD') }} as claim_line_end_date
+    , {{ try_to_cast_date('l.rev_cntr_dt', 'YYYYMMDD') }} as claim_line_start_date
+    , {{ try_to_cast_date('l.rev_cntr_dt', 'YYYYMMDD') }} as claim_line_end_date
     , {{ try_to_cast_date('b.clm_admsn_dt', 'YYYYMMDD') }} as admission_date
     , {{ try_to_cast_date('b.nch_bene_dschrg_dt', 'YYYYMMDD') }} as discharge_date
     , cast(NULL as {{ dbt.type_string() }} ) as admit_source_code
@@ -62,15 +62,15 @@ select
       as bill_type_code
     , cast(NULL as {{ dbt.type_string() }} ) as ms_drg_code
     , cast(NULL as {{ dbt.type_string() }} ) as apr_drg_code
-    -- , cast(l.rev_cntr as {{ dbt.type_string() }} ) as revenue_center_code
-    -- , cast(regexp_extract(cast(l.rev_cntr_unit_cnt as varchar),'.') as integer) as service_unit_quantity
-    -- , cast(l.hcpcs_cd as {{ dbt.type_string() }} ) as hcpcs_code
-    -- , cast(l.hcpcs_1st_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_1
-    -- , cast(l.hcpcs_2nd_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_2
-    -- , cast(l.hcpcs_3rd_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_3
+    , cast(l.rev_cntr as {{ dbt.type_string() }} ) as revenue_center_code
+    , cast(regexp_extract(cast(l.rev_cntr_unit_cnt as varchar),'.') as integer) as service_unit_quantity
+    , cast(l.hcpcs_cd as {{ dbt.type_string() }} ) as hcpcs_code
+    , cast(l.hcpcs_1st_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_1
+    , cast(l.hcpcs_2nd_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_2
+    , cast(l.hcpcs_3rd_mdfr_cd as {{ dbt.type_string() }} ) as hcpcs_modifier_3
     , cast(NULL as {{ dbt.type_string() }} ) as hcpcs_modifier_4
     , cast(NULL as {{ dbt.type_string() }} ) as hcpcs_modifier_5
-    -- , cast(l.rev_cntr_rndrng_physn_npi as {{ dbt.type_string() }} ) as rendering_npi
+    , cast(l.rev_cntr_rndrng_physn_npi as {{ dbt.type_string() }} ) as rendering_npi
     , cast(NULL as {{ dbt.type_string() }} ) as rendering_tin
     , cast(b.org_npi_num as {{ dbt.type_string() }} ) as billing_npi
     , cast(NULL as {{ dbt.type_string() }} ) as billing_tin
@@ -79,6 +79,18 @@ select
     -- , p.paid_amount as paid_amount
     , cast(NULL as {{ dbt.type_numeric() }}) as allowed_amount
     -- , p.charge_amount as charge_amount
+    , case when l.rev_cntr = '0001' 
+          then p.paid_amount 
+          else NULL 
+      end as paid_amount
+    , case when l.rev_cntr = '0001' 
+          then p.charge_amount 
+          else NULL 
+      end as charge_amount
+    , case when l.rev_cntr = '0001' 
+          then p.total_cost_amount
+          else NULL 
+      end as total_cost_amount
     , cast(null as {{ dbt.type_numeric() }}) as coinsurance_amount
     , cast(null as {{ dbt.type_numeric() }}) as copayment_amount
     , cast(null as {{ dbt.type_numeric() }}) as deductible_amount
@@ -186,9 +198,9 @@ select
     , cast(NULL as date) as procedure_date_24
     , cast(NULL as date) as procedure_date_25
     , cast(1 as int) as in_network_flag
-    , 'medicare_lds' as data_source
-    -- , cast(b.file_name as {{ dbt.type_string() }} ) as file_name
-    -- , cast(b.ingest_datetime as {{ dbt.type_timestamp() }} ) as ingest_datetime
+    , cast('medicare_lds' as {{ dbt.type_string() }} ) as data_source
+    , cast(NULL as {{ dbt.type_string() }} ) as file_name
+    , cast(NULL as {{ dbt.type_timestamp() }} ) as ingest_datetime
 from hha_base_claim as b
     inner join {{ ref('stg_hha_revenue_center') }} as l
         on b.claim_no = l.claim_no
