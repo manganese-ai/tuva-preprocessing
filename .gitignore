@@ -26,5 +26,5 @@ data/
 *.out
 *.log
 *.parquet
-tuvaduck.duckdb
+*.duckdb
 

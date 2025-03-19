@@ -20,20 +20,16 @@ select
     , data_source
     , procedure_code_type
     , procedure_column
-    , coalesce(icd_9.icd_9_pcs,icd_10.icd_10_pcs) as normalized_procedure_code
+    , coalesce(icd_10.icd_10_pcs) as normalized_procedure_code
     , count(*) as procedure_code_occurrence_count
     , '{{ var('tuva_last_run')}}' as tuva_last_run
 from pivot_procedure piv
 left join {{ ref('terminology__icd_10_pcs') }} icd_10
     on replace(piv.procedure_code,'.','') = icd_10.icd_10_pcs
-    and piv.procedure_code_type = 'icd-10-pcs'
-left join {{ ref('terminology__icd_9_pcs') }} icd_9
-    on replace(piv.procedure_code,'.','') = icd_9.icd_9_pcs
-    and piv.procedure_code_type = 'icd-9-pcs'
 where claim_type = 'institutional'
 group by 
     claim_id
     , data_source
     , procedure_code_type
     , procedure_column
-    , coalesce(icd_9.icd_9_pcs,icd_10.icd_10_pcs)
+    , coalesce(icd_10.icd_10_pcs)

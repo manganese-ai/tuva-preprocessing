@@ -1,38 +1,110 @@
-[![Apache License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) ![dbt logo and version](https://img.shields.io/static/v1?logo=dbt&label=dbt-version&message=1.x&color=orange)
+# Tuva Preprocessing
 
-# Medicare LDS Connector
+### Set up
+1. Install DuckDB
+    - Download: `curl install.duckdb.org | sh`
+    - Set path:
+        ```
+        nano ~/.bashrc
+        export DUCKDB_PATH='/home/lindsaw/.duckdb/cli/latest':$PATH
+        source ~/.bashrc
+        ```
+2. Clone repos
+    - In your Michigan user folder: `git clone git@github.com:manganese-ai/tuva-preprocessing.git`
+    - Locally (not in Michigan), clone the LDS connector: `git@github.com:tuva-health/medicare_lds_connector.git`
+3. Seed the local LDS connector with Tuva tables (Michigan has some permissions issues, so can't do it there):
+    - Make sure dbt is set up and connected to a DuckDB database called `tuvaseeded.duckdb`
+        - Install DuckDB: `curl install.duckdb.org | sh`
+        - Set up local environment to work with DuckDB. Assuming you have a Mac:
+        ```
+        nano ~/.zshrc 
+        export DUCKDB_PATH='/Users/lindw/.duckdb/cli/latest':$PATH
+        source ~/.zshrc
+        ```
+        - Set up dbt: `python -m pip install dbt-core dbt-duckdb`
+        - Initialize dbt (if haven't done it before): `dbt init`
+        - Add DuckDB to your dbt profile
+        ```
+        nano ~/.dbt/profiles.yml 
+        default:
+            outputs:
+                duck:
+                type: duckdb
+                path: /Users/lindw/Desktop/medicare_lds_connector/tuvaseeded.duckdb
+            target: duck
+        ```
+        - Get Tuva set up: `dbt deps`
+        - Create the DuckDB database: `duckdb tuvaseeded.duckdb`
+        - Seed the connector with the Tuva files (no claims data): `dbt seed`
+    - Secure copy these Tuva seeds into your Michigan folder (change my folder path to yours): `scp tuvaseeded.duckdb lindsaw@armis2.arc-ts.umich.edu:/nfs/turbo/ihpi-cms/Wiens_ML/users/lindsay/tuva-preprocessing/`
+4. Set up your Michigan tuva-preprocessing folder dbt to work with DuckDB
+    ```
+    python -m pip install dbt-core dbt-duckdb
+    pip install dbt-duckdb[parquet]
+    pip install nbstripout
+    ```
+5. Update your (Michigan) dbt profiles to work with DuckDB. Note that there's an environment variable for decis so we can run and save one deci at a time. I set a default to one deci (`s`), but you don't need the default.
+    ```
+    nano ~/.dbt/profiles.yml
+    default:
+    outputs:
+        duck:
+        type: duckdb
+        path: /nfs/turbo/ihpi-cms/Wiens_ML/users/lindsay/tuva-preprocessing/{{ env_var('DECI_RUN', 's') }}.duckdb
 
-## 🔗  Docs
-Check out our [docs](https://thetuvaproject.com/) to learn about the project and how you can use it.
-<br/><br/>
+    target: duck
+    ```
+6. Update your `dbt_project.yml` to work with the right dbt profile. Things you need to check:
+    - dbt profile: `profile: default`
+    - variables: 
+        - `input_database` is the name of the subfolder in the `seeds` folder
+        - `payment_year` is the payment year you want to run through
+        - `years` are the years you want to cycle through
+        - `patient_id_suffix` lets you choose which deci you want to run (e.g., all benes ending in `s` or `k`). It's set to an environment variable to be used in the `src/run_dbt_subsets.sh` script
+        ```
+        vars:
+            input_database: ffs_all
+            cms_hcc_payment_year: 2019
+            years: 2018,2019
+            patient_id_suffix: "{{ env_var('DECI_RUN', 's') }}"
+        ```
+7. Set up Tuva
+    - Get dbt to get Tuva set up: `dbt deps`
+    - Change the files in `dbt_packages/the_tuva_project` to align with the corrected scripts in the `modified_tuva_scripts` folder
+8. Get the claims seeds set up: `cp -rf` the files you need (e.g., all 2018 and 2019 files) from `/nfs/turbo/ihpi-cms/Wiens_ML/parquet_data` into your seeds folder `/nfs/turbo/ihpi-cms/Wiens_ML/users/lindsay/tuva-preprocessing/seeds/ffs_all`
+9. Change file locations to align with your folder
+    - The `external_location` line in `models/_sources.yml` to align with your folder (keep the variables, just change the base folder part, like `users/lindsay/tuva-preprocessing`)
+    - The `fp` line in `src/preprocess_tuva.py`
+    - The `save_path` variable  in `src/cohort.py` 
+    - The `fp` line in `src/save_duckdb_parquets.py`
+10. Make the shell script executable: `chmod +x src/run_dbt_subsets.sh`
 
-## 🧰  What does this repo do?
-The Medicare LDS Connector is a dbt project that maps Medicare LDS claims data to the Tuva [claims data model](https://thetuvaproject.com/claims-data/data-model/about) which then makes it simple to run the entire [Tuva Project](https://github.com/tuva-health/the_tuva_project).  This connector expects your LDS data to be organized into the tables outlined in the [LDS data dictionaries](https://www.cms.gov/Research-Statistics-Data-and-Systems/Files-for-Order/LimitedDataSets/StandardAnalyticalFiles).
-<br/><br/>  
+### Running
+We've had good success using the slurm interactive sessions, instead of submitting a script. You can change whatever variables you need.
+`salloc --account=cms_project1 --partition=largemem --nodes=1 --ntasks-per-node=1 --cpus-per-task=1 --mem-per-cpu=100GB --time=2:00:00`
 
-## 🔌 Database Support
-- BigQuery
-- Redshift
-- Snowflake
-<br/><br/>  
-
-## ✅  Quickstart Guide
-
-### Step 1: Clone or Fork this Repository
-Unlike [the Tuva Project](https://github.com/tuva-health/the_tuva_project), this repo is a dbt project, not a dbt package.  Clone or fork this repository to your local machine.
-<br/><br/> 
-
-### Step 2: Import the Tuva Project
-Next you need to import the Tuva Project dbt package into the Medicare LDS Connector dbt project.  For example, using dbt CLI you would `cd` into the directly where you cloned this project to and run `dbt deps` to import the latest version of the Tuva Project.
-<br/><br/> 
-
-### Step 3: Configure Input Database and Schema
-Next you need to tell dbt where your Medicare LDS source data is located.  Do this using the variables `input_database` and `input_schema` in the `dbt_project.yml` file.  You also need to configure your `profile` in the `dbt_project.yml`.
-<br/><br/> 
-
-### Step 4: Run
-Now you're ready to run the connector and the Tuva Project.  For example, using dbt CLI you would `cd` to the project root folder in the command line and execute `dbt build`.  Next you're now ready to do claims data analytics!  Check out the [data marts](https://thetuvaproject.com/data-marts/about) in our docs to learn what tables you should query.
-<br/><br/>
-
-## 🤝 Join our community!
-Join our growing community of healthcare data practitioners on [Slack](https://join.slack.com/t/thetuvaproject/shared_invite/zt-16iz61187-G522Mc2WGA2mHF57e0il0Q)!
+Run the shell script (`src/run_dbt_subsets.sh`), which does the following:
+1. Creates the cohort table in the seeds folder (`src/cohort.py`)
+2. For each deci:
+    - Copies the Tuva seeds into a deci-specific duckdb (e.g., `deci_s.duckdb`)
+    - Seeds the cohort table
+    - Runs the dbt models we need: 
+        - claims preprocessing (`models` folder): staging, intermediate, final 
+        - Tuva models (`dbt_packages/the_tuva_project/models` folder): claims_preprocessing core cms_hcc financial_pmpm
+    - Processes and saves parquet files for modeling (`src/preprocess_tuva.py`)
+        - All condition data: `/data/condition_all_{deci}.parquet`
+            - For 2018 and 2019, all columns from `core.condition`
+        - Modeling condition data (for Franklin): `data/condition_modeling_{deci}.parquet`
+            - For 2018 only, unique combinations of patient id and normalized code from `core.condition`
+            - Columns: patient id, normalized code, normalized description
+        - All procedure data: `/data/procedure_all_{deci}.parquet`
+            - For 2018 and 2019, all columns from `core.procedure`
+        - Modeling procedure data: `/data/procedure_modeling_{subset}.parquet`
+            - For 2018 only, unique combinations of patient id, code type (hcpcs or icd-10-pcs), and normalized code from `core.procedure`
+            - Columns: patient id, code type, normalized code, description, code modifiers, practioner id (I believe this is NPI)
+        - Medical claim data: `data/medical_claim_{subset}.parquet`
+            - Claim data from `core.medical_claim` for 2018 AND 2019
+        - Cost demographics data: `/data/cost_demographics_{subset}.parquet`
+            - HCC v24 scores (v28 is always 0 in Tuva)
+            - Bene demographics: gender, age (normalized), enrollment status, Medicaid status, dual status, original reason for entitlement, institutional status
+            - Cost data for 2019: medical paid, log10 medical paid, all cost categories (e.g., outpatient, urgent care)

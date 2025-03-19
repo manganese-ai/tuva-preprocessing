@@ -16,8 +16,6 @@ select * from (
       , cast(LINE_BENE_PRMRY_PYR_PD_AMT as {{ dbt.type_numeric() }}) as LINE_BENE_PRMRY_PYR_PD_AMT
       , cast(PRF_PHYSN_NPI as {{ dbt.type_string() }}) as PRF_PHYSN_NPI
       , lpad(cast(LINE_PLACE_OF_SRVC_CD AS STRING), 2, '0') as LINE_PLACE_OF_SRVC_CD
-
-      /** new **/
       , {{ to_date("LINE_LAST_EXPNS_DT", 'yyyy-mm-dd') }} as LINE_LAST_EXPNS_DT
 
   {% endcall %}

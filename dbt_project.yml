@@ -11,9 +11,7 @@ vars:
   claims_enabled: true
   cms_hcc_payment_year: 2019
   years: 2018,2019
-  outpatient_only: false
-  inpatient_only: false
-  # patient_id_suffix: sK2
+  patient_id_suffix: "{{ env_var('DECI_RUN', 's') }}"
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]

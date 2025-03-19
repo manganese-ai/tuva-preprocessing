@@ -11,8 +11,6 @@ select * from (
       , cast(BENE_HMO_CVRAGE_TOT_MONS as {{ dbt.type_numeric() }}) as HMO_COVERAGE
       , {{ to_date("BENE_DEATH_DT", 'yyyy-mm-dd') }} as DATE_OF_DEATH
       , cast(STATE_CODE as {{ dbt.type_string() }}) as STATE_CODE
-
-      /** new **/
       , cast(SAMPLE_GROUP as {{ dbt.type_numeric() }}) as SAMPLE_GROUP
       , cast(COUNTY_CD as {{ dbt.type_string() }}) as COUNTY_CD
       , cast(ENTLMT_RSN_CURR as {{ dbt.type_string() }}) as CURR_REASON_FOR_ENTITLEMENT
@@ -39,7 +37,6 @@ select * from (
         end as MDCR_STATUS_CODE_{{"%02d"|format(month+1)}}
       {% endfor %}
 
-      /** new **/
       {% for month in range(0,12) %}
       ,  case 
           when STATE_CNTY_FIPS_CD_{{"%02d"|format(month+1)}} in ('None','NA','NULL',null) then null 

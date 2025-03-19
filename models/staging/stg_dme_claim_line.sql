@@ -16,8 +16,6 @@ select * from (
       , cast(PRVDR_NPI as {{ dbt.type_string() }}) as PRVDR_NPI
       , lpad(CAST(LINE_PLACE_OF_SRVC_CD AS STRING), 2, '0') as LINE_PLACE_OF_SRVC_CD
       , cast(LINE_NUM as {{ dbt.type_numeric() }}) as CLM_LINE_NUM
-
-      /** new **/
       , {{ to_date("LINE_LAST_EXPNS_DT", 'yyyy-mm-dd') }} as LINE_LAST_EXPNS_DT
 
   {% endcall %}

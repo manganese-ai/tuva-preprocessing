@@ -8,7 +8,7 @@ with inpatient as (
     , {{ to_date("CLM_THRU_DT", 'yyyy-mm-dd') }} as CLM_THRU_DT
     , cast(HCPCS_CD as {{ dbt.type_string() }}) as HCPCS_CD
     , lpad(CAST(REV_CNTR AS STRING), 4, '0') as REV_CNTR
-    , cast(0 as {{ dbt.type_numeric() }}) as REV_CNTR_UNIT_CNT -- should this be 1?
+    , cast(0 as {{ dbt.type_numeric() }}) as REV_CNTR_UNIT_CNT
 
     /** missing in medpar **/
     , cast(null as {{ dbt.type_string() }}) as HCPCS_1ST_MDFR_CD

@@ -79,16 +79,10 @@ select
     , cast(NULL as {{ dbt.type_string() }} ) as billing_tin
     , cast(coalesce(b.org_npi_num,b.srvc_loc_npi_num) as {{ dbt.type_string() }} ) as facility_npi
     , cast(NULL as date) as paid_date
-    -- , coalesce(
-    --         p.paid_amount
-    --         , cast(0 as {{ dbt.type_numeric() }})
-    --   ) as paid_amount
     , cast(NULL as {{ dbt.type_numeric() }}) as allowed_amount
-    -- , p.charge_amount as charge_amount
     , cast(null as {{ dbt.type_numeric() }}) as coinsurance_amount
     , cast(null as {{ dbt.type_numeric() }}) as copayment_amount
     , cast(null as {{ dbt.type_numeric() }}) as deductible_amount
-    -- , p.total_cost_amount as total_cost_amount
     , case when l.rev_cntr = '0001'
         then coalesce(p.paid_amount,cast(0 as {{ dbt.type_numeric() }}))
         else NULL 
@@ -213,6 +207,5 @@ from outpatient_base_claim as b
     /* Payment is provided at the header level only.  Populating on revenue center 001 to avoid duplication. */
     left join header_payment as p
         on b.claim_no = p.claim_id
-        -- and l.rev_cntr = '0001'
     left join claim_start_date as c
         on b.claim_no = c.claim_no

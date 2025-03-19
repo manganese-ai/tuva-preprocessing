@@ -2,6 +2,8 @@
 # if we modify the eligibility / cohort criteria,
 # re-run this py script and then re-seed with
 # dbt seed -s cohort.csv
+
+# note -- this keeps originally entitled disabled individuals
 ####################################################
 
 import polars as pl
@@ -9,9 +11,10 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-# cohort, but including decedents
-denom18_path = "/nfs/turbo/ihpi-cms/Wiens_ML/parquet_data/den18p20.parquet/*.parquet"
-denom19_path = "/nfs/turbo/ihpi-cms/Wiens_ML/parquet_data/den19p20.parquet/*.parquet"
+# cohort, but including decedents and originally entitled disabled
+save_path = "/nfs/turbo/ihpi-cms/Wiens_ML/users/lindsay/tuva-preprocessing/seeds"     # noqa
+denom18_path = "/nfs/turbo/ihpi-cms/Wiens_ML/parquet_data/den18p20.parquet/*.parquet"  # noqa
+denom19_path = "/nfs/turbo/ihpi-cms/Wiens_ML/parquet_data/den19p20.parquet/*.parquet"  # noqa
 
 # relevant columns
 cols = [
@@ -23,6 +26,7 @@ cols = [
     "DUAL_ELGBL_MONS"
 ]
 
+
 def filter_2018(df):
     return (
         df.filter(
@@ -31,11 +35,12 @@ def filter_2018(df):
             (pl.col("BENE_SMI_CVRAGE_TOT_MONS") == 12.0) &
             (pl.col("BENE_HI_CVRAGE_TOT_MONS") == 12.0) &
             (pl.col("ENTLMT_RSN_ORIG").is_in(["0", "1"])) &
-            (pl.col("ENTLMT_RSN_CURR").is_in(["0", "1"])) & 
+            (pl.col("ENTLMT_RSN_CURR").is_in(["0", "1"])) &
             (pl.col("AGE_AT_END_REF_YR") >= 65) &
             (pl.col("BENE_DEATH_DT").is_null())
         )
     )
+
 
 def filter_2019(df):
     return (
@@ -47,7 +52,12 @@ def filter_2019(df):
         )
     )
 
-denom18 = pl.scan_parquet(denom18_path).rename({"bene_id": "BENE_ID"}).select(cols)
+
+denom18 = (
+    pl.scan_parquet(denom18_path).
+    rename({"bene_id": "BENE_ID"})
+    .select(cols)
+)
 denom19 = pl.scan_parquet(denom19_path).select(cols)
 
 benes18 = filter_2018(denom18)
@@ -61,4 +71,4 @@ original_cohort = list(
 )
 
 df = pl.DataFrame({"patient_id": original_cohort})
-df.write_csv('/nfs/turbo/ihpi-cms/Wiens_ML/users/lindsay/tuva-preprocessing/seeds/cohort.csv')
+df.write_csv(f'{save_path}/cohort.csv')
