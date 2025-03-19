@@ -85,26 +85,34 @@ We've had good success using the slurm interactive sessions, instead of submitti
 
 Run the shell script (`src/run_dbt_subsets.sh`), which does the following:
 1. Creates the cohort table in the seeds folder (`src/cohort.py`)
-2. For each deci:
-    - Copies the Tuva seeds into a deci-specific duckdb (e.g., `deci_s.duckdb`)
-    - Seeds the cohort table
-    - Runs the dbt models we need: 
-        - claims preprocessing (`models` folder): staging, intermediate, final 
-        - Tuva models (`dbt_packages/the_tuva_project/models` folder): claims_preprocessing core cms_hcc financial_pmpm
+
+For each deci:
+2. Copies the Tuva seeds into a deci-specific duckdb (e.g., `deci_s.duckdb`)
+3. Seeds the cohort table
+4. Runs the dbt models we need: 
+    - claims preprocessing (`models` folder): staging, intermediate, final 
+    - Tuva models (`dbt_packages/the_tuva_project/models` folder): claims_preprocessing core cms_hcc financial_pmpm
     - Processes and saves parquet files for modeling (`src/preprocess_tuva.py`)
-        - All condition data: `/data/condition_all_{deci}.parquet`
-            - For 2018 and 2019, all columns from `core.condition`
-        - Modeling condition data (for Franklin): `data/condition_modeling_{deci}.parquet`
-            - For 2018 only, unique combinations of patient id and normalized code from `core.condition`
-            - Columns: patient id, normalized code, normalized description
-        - All procedure data: `/data/procedure_all_{deci}.parquet`
-            - For 2018 and 2019, all columns from `core.procedure`
-        - Modeling procedure data: `/data/procedure_modeling_{subset}.parquet`
-            - For 2018 only, unique combinations of patient id, code type (hcpcs or icd-10-pcs), and normalized code from `core.procedure`
-            - Columns: patient id, code type, normalized code, description, code modifiers, practioner id (I believe this is NPI)
-        - Medical claim data: `data/medical_claim_{subset}.parquet`
-            - Claim data from `core.medical_claim` for 2018 AND 2019
-        - Cost demographics data: `/data/cost_demographics_{subset}.parquet`
-            - HCC v24 scores (v28 is always 0 in Tuva)
-            - Bene demographics: gender, age (normalized), enrollment status, Medicaid status, dual status, original reason for entitlement, institutional status
-            - Cost data for 2019: medical paid, log10 medical paid, all cost categories (e.g., outpatient, urgent care)
+
+Saved files (in `data` fodler):
+- All condition data: `condition_all_{deci}.parquet`
+    - For 2018 and 2019, all columns from `core.condition`
+
+- Modeling condition data (for Franklin): `condition_modeling_{deci}.parquet`
+    - For 2018 only, unique combinations of patient id and normalized code from `core.condition`
+    - Columns: patient id, normalized code, normalized description
+
+- All procedure data: `procedure_all_{deci}.parquet`
+    - For 2018 and 2019, all columns from `core.procedure`
+
+- Modeling procedure data: `procedure_modeling_{deci}.parquet`
+    - For 2018 only, unique combinations of patient id, code type (hcpcs or icd-10-pcs), and normalized code from `core.procedure`
+    - Columns: patient id, code type, normalized code, description, code modifiers, practioner id (I believe this is NPI)
+
+- Medical claim data: `medical_claim_{deci}.parquet`
+    - For 2018 and 2019, the useful columns from claim data from `core.medical_claim`
+
+- Cost demographics data: `cost_demographics_{deci}.parquet`
+    - HCC v24 scores (v28 is always 0 in Tuva)
+    - Bene demographics: gender, age (normalized), enrollment status, Medicaid status, dual status, original reason for entitlement, institutional status
+    - Cost data for 2019: medical paid, log10 medical paid, all cost categories (e.g., outpatient, urgent care)
