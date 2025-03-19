@@ -94,7 +94,7 @@ For each deci:
     - Tuva models (`dbt_packages/the_tuva_project/models` folder): claims_preprocessing core cms_hcc financial_pmpm
     - Processes and saves parquet files for modeling (`src/preprocess_tuva.py`)
 
-Saved files (in `data` fodler):
+### Saved files (in `data` fodler):
 - All condition data: `condition_all_{deci}.parquet`
     - For 2018 and 2019, all columns from `core.condition`
 
