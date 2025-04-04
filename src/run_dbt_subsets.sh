@@ -24,23 +24,23 @@ for subset in "${subsets[@]}"; do
     export DECI_RUN="$subset"
     echo "DECI_RUN is set to: $DECI_RUN"
     
-#     # copy tuva seeds
-#     cp tuvaseeded.duckdb "deci_${subset}.duckdb"
-#     check_status "Copying database for $subset failed." "Copied tuvaseeded.duckdb to deci_${subset}.duckdb"
+    # copy tuva seeds
+    cp tuvaseeded.duckdb "deci_${subset}.duckdb"
+    check_status "Copying database for $subset failed." "Copied tuvaseeded.duckdb to deci_${subset}.duckdb"
 
-#     # add cohort eligibility seed
-#     dbt seed -s cohort
-#     check_status "dbt seed failed for $subset" "dbt seed completed for $subset"
+    # add cohort eligibility seed
+    dbt seed -s cohort
+    check_status "dbt seed failed for $subset" "dbt seed completed for $subset"
 
-#     # run the dbt scripts we need
-#     dbt run -s +final claims_preprocessing core cms_hcc financial_pmpm
-#     check_status "dbt run failed for $subset" "dbt run completed for $subset"
+    # run the dbt scripts we need
+    dbt run -s +final claims_preprocessing core cms_hcc financial_pmpm
+    check_status "dbt run failed for $subset" "dbt run completed for $subset"
 
-#     # save preprocessed data
-#     python src/preprocess_tuva.py
-#     check_status "Saving preprocessed parquet files failed for $subset" "Saved preprocessed parquet files for $subset"
+    # save preprocessed data
+    python src/preprocess_tuva.py
+    check_status "Saving preprocessed parquet files failed for $subset" "Saved preprocessed parquet files for $subset"
     
-#     echo "--------------------------------"
+    echo "--------------------------------"
 done
 
 echo "All subsets processed successfully."

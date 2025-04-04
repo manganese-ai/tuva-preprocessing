@@ -97,54 +97,67 @@ def get_modeling_procedure():
 
 def get_medical_claim():
     sql = f"""
+    WITH npis AS (
+        SELECT DISTINCT
+            npi,
+            specialty AS provider_specialty
+        FROM core.practitioner
+    ),
+    claims AS (
+        SELECT
+            person_id AS patient_id,
+            claim_id, claim_line_number, claim_type,
+            encounter_id, encounter_type, encounter_group,
+            claim_end_date, claim_line_end_date,
+            service_category_1, service_category_2, service_category_3,
+            admit_source_description, admit_type_description,
+            discharge_disposition_description,
+            ms_drg_description, apr_drg_description,
+            place_of_service_code, place_of_service_description,
+            bill_type_code, bill_type_description,
+            revenue_center_code, revenue_center_description,
+            service_unit_quantity, hcpcs_code,
+            hcpcs_modifier_1, hcpcs_modifier_2, hcpcs_modifier_3,
+            hcpcs_modifier_4, hcpcs_modifier_5,
+            rendering_id, billing_id, billing_name, facility_id, facility_name,
+            paid_amount, allowed_amount, charge_amount, coinsurance_amount,
+            copayment_amount, deductible_amount, total_cost_amount,
+            enrollment_flag
+        FROM core.medical_claim
+        WHERE YEAR(claim_end_date) IN ({diagnosis_year}, {payment_year})
+    )
     SELECT
-        person_id AS patient_id,
-        claim_id, claim_line_number, claim_type,
-        encounter_id, encounter_type, encounter_group,
-        claim_end_date, claim_line_end_date,
-        service_category_1, service_category_2, service_category_3,
-        admit_source_description, admit_type_description,
-        discharge_disposition_description,
-        ms_drg_description, apr_drg_description,
-        place_of_service_code, place_of_service_description,
-        bill_type_code, bill_type_description,
-        revenue_center_code, revenue_center_description,
-        service_unit_quantity, hcpcs_code,
-        hcpcs_modifier_1, hcpcs_modifier_2, hcpcs_modifier_3,
-        hcpcs_modifier_4, hcpcs_modifier_5,
-        rendering_id, billing_id, billing_name, facility_id, facility_name,
-        paid_amount, allowed_amount, charge_amount, coinsurance_amount,
-        copayment_amount, deductible_amount, total_cost_amount,
-        enrollment_flag
-    FROM core.medical_claim
-    WHERE YEAR(claim_end_date) IN ({diagnosis_year},{payment_year})
-    ORDER BY person_id, claim_id, claim_line_number ASC
+        claims.*,
+        npis.provider_specialty
+    FROM claims
+    LEFT JOIN npis ON claims.rendering_id = npis.npi
+    ORDER BY patient_id, claim_id, claim_line_number ASC;
     ;"""
     return pl.from_arrow(conn.execute(sql).fetch_arrow_table())
 
 
 def get_risk_scores():
-    sql = f'''
+    sql = f"""
     SELECT DISTINCT
         person_id AS patient_id,
         v24_risk_score, v28_risk_score,
         payment_risk_score
     FROM cms_hcc.patient_risk_scores
     WHERE payment_year = {payment_year}
-    ;'''
+    ;"""
     scores = conn.execute(sql).fetchdf()
     return scores
 
 
 def get_demographic_factors():
-    sql = f'''
+    sql = f"""
     SELECT DISTINCT
         person_id AS patient_id,
         risk_factor_description
     FROM cms_hcc.patient_risk_factors
     WHERE factor_type = 'Demographic'
     AND payment_year = {payment_year}
-    ;'''
+    ;"""
     dem = conn.execute(sql).fetchdf()
     dem[[
         'gender', 'age', 'enrollment_status', 'medicaid_status',
@@ -235,45 +248,45 @@ def preprocess(df):
 
 
 def main():
-    # get conditions
-    cond = get_all_condition()
-    cond.write_parquet(f"{fp}/data/condition_all_{subset}.parquet")
-    print(f"Saved all condition for {subset}:\t\t {len(cond)} rows \t{cond['patient_id'].n_unique()} benes")  # noqa
+    # # get conditions
+    # cond = get_all_condition()
+    # cond.write_parquet(f"{fp}/data/condition_all_{subset}.parquet")
+    # print(f"Saved all condition for {subset}:\t\t {len(cond)} rows \t{cond['patient_id'].n_unique()} benes")  # noqa
 
-    cond = get_modeling_condition()
-    cond.write_parquet(f"{fp}/data/condition_modeling_{subset}.parquet")
-    print(f"Saved modeling condition for {subset}:\t {len(cond)} rows \t{cond['patient_id'].n_unique()} benes")  # noqa
+    # cond = get_modeling_condition()
+    # cond.write_parquet(f"{fp}/data/condition_modeling_{subset}.parquet")
+    # print(f"Saved modeling condition for {subset}:\t {len(cond)} rows \t{cond['patient_id'].n_unique()} benes")  # noqa
 
-    # get procedures
-    proc = get_all_procedure()
-    proc.write_parquet(f"{fp}/data/procedure_all_{subset}.parquet")
-    print(f"Saved all procedure for {subset}:\t\t {len(proc)} rows \t{proc['patient_id'].n_unique()} benes")  # noqa
+    # # get procedures
+    # proc = get_all_procedure()
+    # proc.write_parquet(f"{fp}/data/procedure_all_{subset}.parquet")
+    # print(f"Saved all procedure for {subset}:\t\t {len(proc)} rows \t{proc['patient_id'].n_unique()} benes")  # noqa
 
-    proc = get_modeling_procedure()
-    proc.write_parquet(f"{fp}/data/procedure_modeling_{subset}.parquet")
-    print(f"Saved modeling procedure for {subset}:\t {len(proc)} rows \t{proc['patient_id'].n_unique()} benes")  # noqa
+    # proc = get_modeling_procedure()
+    # proc.write_parquet(f"{fp}/data/procedure_modeling_{subset}.parquet")
+    # print(f"Saved modeling procedure for {subset}:\t {len(proc)} rows \t{proc['patient_id'].n_unique()} benes")  # noqa
 
     # get medical claim
     med = get_medical_claim()
     med.write_parquet(f"{fp}/data/medical_claim_{subset}.parquet")
     print(f"Saved medical claim for {subset}:\t\t {len(med)} rows \t{med['patient_id'].n_unique()} benes")  # noqa
 
-    # get hcc scores and demographics
-    scores = get_risk_scores()
-    dem = get_demographic_factors()
-    mid = combine_df([scores, dem])
-    cost = get_cost()
-    df = mid.merge(cost, how='left', on='patient_id')
+    # # get hcc scores and demographics
+    # scores = get_risk_scores()
+    # dem = get_demographic_factors()
+    # mid = combine_df([scores, dem])
+    # cost = get_cost()
+    # df = mid.merge(cost, how='left', on='patient_id')
 
-    for c in [i for i in cost.columns if i != 'patient_id']:
-        df[c] = df[c].fillna(0.00).astype(float)
+    # for c in [i for i in cost.columns if i != 'patient_id']:
+    #     df[c] = df[c].fillna(0.00).astype(float)
 
-    # basic preprocessing
-    df = preprocess(df)
+    # # basic preprocessing
+    # df = preprocess(df)
 
-    p = f'{fp}/data/cost_demographics_{subset}.parquet'
-    df.to_parquet(p)
-    print(f"Saved cost / demographics for {subset}:\t {len(df)} rows \t{df.patient_id.nunique()} benes")  # noqa
+    # p = f'{fp}/data/cost_demographics_{subset}.parquet'
+    # df.to_parquet(p)
+    # print(f"Saved cost / demographics for {subset}:\t {len(df)} rows \t{df.patient_id.nunique()} benes")  # noqa
 
 
 if __name__ == '__main__':
