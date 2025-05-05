@@ -94,6 +94,29 @@ For each deci:
     - Tuva models (`dbt_packages/the_tuva_project/models` folder): claims_preprocessing core cms_hcc financial_pmpm
     - Processes and saves parquet files for modeling (`src/preprocess_tuva.py`)
 
+### Core modeling data (in `data` folder):
+- All condition data: `condition_all_{deci}.parquet`
+    - For 2018 and 2019, all columns from `core.condition`
+
+- Modeling condition data (for Franklin): `condition_modeling_{deci}.parquet`
+    - For 2018 only, unique combinations of patient id and normalized code from `core.condition`
+    - Columns: patient id, normalized code, normalized description
+
+- All procedure data: `procedure_all_{deci}.parquet`
+    - For 2018 and 2019, all columns from `core.procedure`
+
+- Modeling procedure data: `procedure_modeling_{deci}.parquet`
+    - For 2018 only, unique combinations of patient id, code type (hcpcs or icd-10-pcs), and normalized code from `core.procedure`
+    - Columns: patient id, code type, normalized code, description, code modifiers, practioner id (I believe this is NPI)
+
+- Medical claim data: `medical_claim_{deci}.parquet`
+    - For 2018 and 2019, the useful columns from claim data from `core.medical_claim`
+
+- Cost demographics data: `cost_demographics_{deci}.parquet`
+    - HCC v24 scores (v28 is always 0 in Tuva)
+    - Bene demographics: gender, age (normalized), enrollment status, Medicaid status, dual status, original reason for entitlement, institutional status
+    - Cost data for 2019: medical paid, log10 medical paid, all cost categories (e.g., outpatient, urgent care)
+
 ### DuckDB databases (`deci_{}.duckdb`)
 
 You can find all of the schema / table names with this command: `SELECT table_schema, table_name FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema');`
@@ -159,26 +182,3 @@ These are value sets and intermediate files needed for Tuva, but not useful to u
 - `quality_measures` schema (e.g., `_value_set_codes` table)
 - `readmissions` schema (e.g., `_value_set_acute_diagnosis_icd_10_cm` table)
 - `reference_data` schema (e.g., `ansi_fips_state` table)
-
-### Core modeling data (in `data` folder):
-- All condition data: `condition_all_{deci}.parquet`
-    - For 2018 and 2019, all columns from `core.condition`
-
-- Modeling condition data (for Franklin): `condition_modeling_{deci}.parquet`
-    - For 2018 only, unique combinations of patient id and normalized code from `core.condition`
-    - Columns: patient id, normalized code, normalized description
-
-- All procedure data: `procedure_all_{deci}.parquet`
-    - For 2018 and 2019, all columns from `core.procedure`
-
-- Modeling procedure data: `procedure_modeling_{deci}.parquet`
-    - For 2018 only, unique combinations of patient id, code type (hcpcs or icd-10-pcs), and normalized code from `core.procedure`
-    - Columns: patient id, code type, normalized code, description, code modifiers, practioner id (I believe this is NPI)
-
-- Medical claim data: `medical_claim_{deci}.parquet`
-    - For 2018 and 2019, the useful columns from claim data from `core.medical_claim`
-
-- Cost demographics data: `cost_demographics_{deci}.parquet`
-    - HCC v24 scores (v28 is always 0 in Tuva)
-    - Bene demographics: gender, age (normalized), enrollment status, Medicaid status, dual status, original reason for entitlement, institutional status
-    - Cost data for 2019: medical paid, log10 medical paid, all cost categories (e.g., outpatient, urgent care)
