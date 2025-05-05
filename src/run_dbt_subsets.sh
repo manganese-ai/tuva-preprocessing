@@ -15,7 +15,7 @@ check_status() {
     fi
 }
 
-# create the cohort table in the seeds folder
+# create the cohort table in the seeds folder and save demographic info to the shared folder
 python src/cohort.py
 check_status "creating cohort table failed" "created cohort table"
 

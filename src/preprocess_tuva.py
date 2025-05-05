@@ -1,4 +1,7 @@
 ##################################################
+# NOTE: DO NOT WANT TO USE MODELING PROCEDURE -- we only want source_code
+# (normalized_code does not include CPT codes)
+
 # This script was run for each deci after completing Tuva
 
 # These files are saved as parquets for each deci:
@@ -60,39 +63,39 @@ def get_all_procedure():
     return df.drop('patient_id').rename({'person_id': 'patient_id'})
 
 
-def get_modeling_condition():
-    sql = f"""
-    SELECT
-        person_id AS patient_id,
-        normalized_code AS code,
-        normalized_description AS desc
-    FROM core.condition
-    WHERE YEAR(recorded_date) = {diagnosis_year}
-    AND person_id IS NOT NULL
-    AND normalized_code IS NOT NULL
-    ORDER BY person_id, normalized_code ASC
-    ;"""
-    df = pl.from_arrow(conn.execute(sql).fetch_arrow_table())
-    return df.unique(subset=['patient_id', 'code'])
+# def get_modeling_condition():
+#     sql = f"""
+#     SELECT
+#         person_id AS patient_id,
+#         normalized_code AS code,
+#         normalized_description AS desc
+#     FROM core.condition
+#     WHERE YEAR(recorded_date) = {diagnosis_year}
+#     AND person_id IS NOT NULL
+#     AND normalized_code IS NOT NULL
+#     ORDER BY person_id, normalized_code ASC
+#     ;"""
+#     df = pl.from_arrow(conn.execute(sql).fetch_arrow_table())
+#     return df.unique(subset=['patient_id', 'code'])
 
 
-def get_modeling_procedure():
-    sql = f"""
-    SELECT
-        person_id AS patient_id,
-        source_code_type AS code_type,
-        normalized_code AS code,
-        normalized_description AS desc,
-        modifier_1, modifier_2, modifier_3, modifier_4, modifier_5,
-        practitioner_id
-    FROM core.procedure
-    WHERE YEAR(procedure_date) = {diagnosis_year}
-    AND person_id IS NOT NULL
-    AND normalized_code IS NOT NULL
-    ORDER BY person_id, source_code_type, normalized_code ASC
-    ;"""
-    df = pl.from_arrow(conn.execute(sql).fetch_arrow_table())
-    return df.unique(subset=['patient_id', 'code_type', 'code'])
+# def get_modeling_procedure():
+#     sql = f"""
+#     SELECT
+#         person_id AS patient_id,
+#         source_code_type AS code_type,
+#         normalized_code AS code,
+#         normalized_description AS desc,
+#         modifier_1, modifier_2, modifier_3, modifier_4, modifier_5,
+#         practitioner_id
+#     FROM core.procedure
+#     WHERE YEAR(procedure_date) = {diagnosis_year}
+#     AND person_id IS NOT NULL
+#     AND normalized_code IS NOT NULL
+#     ORDER BY person_id, source_code_type, normalized_code ASC
+#     ;"""
+#     df = pl.from_arrow(conn.execute(sql).fetch_arrow_table())
+#     return df.unique(subset=['patient_id', 'code_type', 'code'])
 
 
 def get_medical_claim():
@@ -134,6 +137,17 @@ def get_medical_claim():
     ORDER BY patient_id, claim_id, claim_line_number ASC;
     ;"""
     return pl.from_arrow(conn.execute(sql).fetch_arrow_table())
+
+
+def get_hcc_risk_factors():
+    sql = f"""
+    SELECT *
+    FROM cms_hcc.patient_risk_factors
+    WHERE payment_year IN ({diagnosis_year}, {payment_year})
+    ;"""
+    factors = pl.from_arrow(conn.execute(sql).fetch_arrow_table())
+    factors = factors.rename({'person_id': 'patient_id'})
+    return factors
 
 
 def get_risk_scores():
@@ -253,23 +267,28 @@ def main():
     # cond.write_parquet(f"{fp}/data/condition_all_{subset}.parquet")
     # print(f"Saved all condition for {subset}:\t\t {len(cond)} rows \t{cond['patient_id'].n_unique()} benes")  # noqa
 
-    # cond = get_modeling_condition()
-    # cond.write_parquet(f"{fp}/data/condition_modeling_{subset}.parquet")
-    # print(f"Saved modeling condition for {subset}:\t {len(cond)} rows \t{cond['patient_id'].n_unique()} benes")  # noqa
+    # # cond = get_modeling_condition()
+    # # cond.write_parquet(f"{fp}/data/condition_modeling_{subset}.parquet")
+    # # print(f"Saved modeling condition for {subset}:\t {len(cond)} rows \t{cond['patient_id'].n_unique()} benes")  # noqa
 
     # # get procedures
     # proc = get_all_procedure()
     # proc.write_parquet(f"{fp}/data/procedure_all_{subset}.parquet")
     # print(f"Saved all procedure for {subset}:\t\t {len(proc)} rows \t{proc['patient_id'].n_unique()} benes")  # noqa
 
-    # proc = get_modeling_procedure()
-    # proc.write_parquet(f"{fp}/data/procedure_modeling_{subset}.parquet")
-    # print(f"Saved modeling procedure for {subset}:\t {len(proc)} rows \t{proc['patient_id'].n_unique()} benes")  # noqa
+    # # proc = get_modeling_procedure()
+    # # proc.write_parquet(f"{fp}/data/procedure_modeling_{subset}.parquet")
+    # # print(f"Saved modeling procedure for {subset}:\t {len(proc)} rows \t{proc['patient_id'].n_unique()} benes")  # noqa
 
-    # get medical claim
-    med = get_medical_claim()
-    med.write_parquet(f"{fp}/data/medical_claim_{subset}.parquet")
-    print(f"Saved medical claim for {subset}:\t\t {len(med)} rows \t{med['patient_id'].n_unique()} benes")  # noqa
+    # # get medical claim
+    # med = get_medical_claim()
+    # med.write_parquet(f"{fp}/data/medical_claim_{subset}.parquet")
+    # print(f"Saved medical claim for {subset}:\t\t {len(med)} rows \t{med['patient_id'].n_unique()} benes")  # noqa
+
+    # get hcc risk factors
+    risk = get_hcc_risk_factors()
+    risk.write_parquet(f"{fp}/data/hcc_risk_factors_{subset}.parquet")
+    print(f"Saved hcc risk factors for {subset}:\t {len(risk)} rows \t{risk['patient_id'].n_unique()} benes")  # noqa
 
     # # get hcc scores and demographics
     # scores = get_risk_scores()

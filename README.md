@@ -94,7 +94,73 @@ For each deci:
     - Tuva models (`dbt_packages/the_tuva_project/models` folder): claims_preprocessing core cms_hcc financial_pmpm
     - Processes and saves parquet files for modeling (`src/preprocess_tuva.py`)
 
-### Saved files (in `data` fodler):
+### DuckDB databases (`deci_{}.duckdb`)
+
+You can find all of the schema / table names with this command: `SELECT table_schema, table_name FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema');`
+
+**Input layer**
+These tables correspond to the models we created to transform the raw claims into the Tuva input format.
+- `main` schema only contains our `cohort` table
+    - This is the source of truth for our cohort
+- `_stg_input_layer` schema refers to the staging models
+    - These are lightweight models that basically ensure the columns are read in the correct format.
+    - They also filter the raw claims for benes that meet our eligibility criteria
+    - Examples: `stg_carrier_base_claim`, `stg_carrier_claim_line`, `stg_outpatient_base_claim`, `stg_outpatient_revenue_center`
+- `_int_input_layer` schema refers to the intermediate models
+    - These combine the base claim / claim lines
+    - Examples: `carrier_claim`, `inpatient_claim`
+- `input_layer` schema refers to the final models
+    - These are the inputs to Tuva
+    - Tables: `eligibility`, `medical_claim`, `pharmacy_claim` (pharmacy claim is not populated)
+
+**Tuva tables**
+- `terminology` schema
+    - This is useful if you want to pull out Tuva's source of truth (rather than finding it in some CMS PDF)
+    - Examples: `icd_10_cm` lists what each ICD is, `race` gives the race codings from the raw data
+- `claims_preprocessing` schema
+    - This is a major workhorse of Tuva, where they normalize the input tables and add information about claims enrollment statuses, loop through all encounter types, and create a service category (e.g., acute inpatient) for each claim
+    - Many of these tables are useful for debugging. In particular: `normalized_input_medical_claim` and `normalized_input_eligibility`
+    - Examples: `dialysis__encounter_grain`, `emergency_department__prof_claims`, `office_visits__int_office_visits_telehealth`, `service_category__office_based_radiology`
+    - Any of the tables that start with `_int` (e.g., `_int_normalized_input_admit_source_voting`) won't be useful for debugging.
+- `core` schema
+    - These are the final versions of essential tables used in downstream processes like HCC and cost calculations
+    - These tables should be the source of truth. They are also saved in the `data` folder:
+        - `condition`: ICD codes (note: here, we want `normalized` codes, I think)
+        - `medical_claim`: claims
+        - `procedure`: CPTs / HCPCS (note: here, we want `source` codes)
+        - `practitioner`: NPI info (NPI, name, specialty, sub-specialty)
+        - Tables we haven't used, but may want to someday: `eligibility`, `encounter`, `location`, `member_months`, `patient`, `person_id_crosswalk`
+    - You can ignore the tables that start with `_stg` (e.g., `_stg_claims_condition`), unless you are debugging
+- `cms_hcc` schema
+    - This is where the HCCs are calculated.
+    - The two tables we'll need the most are:
+        - `patient_risk_factors`: 1 line for each risk factor (demographic, disease, interaction factors) per bene (each bene can have >1 row)
+        - `patient_risk_scores`: 1 line per bene with their HCC v24 risk score
+    - Tables that start with `_int` are the intermediate steps, such as mapping ICDs to HCCs (`_int_hcc_mapping`), applying the HCC hierarchy (`_int_hcc_hierarchy`), and adding the appropriate coefficients (e.g., `_int_disease_factors`)
+    - Tables that start with `_value_set` indicate Tuva's source of truth for, example, which ICDs are matched to which HCCs (`_value_set_icd_10_cm_mappings`)
+- `financial_pmpm` schema
+    - This is where we get our cost data.
+    - `pmpm_prep`
+        - This table has 1 line per bene for each MONTH, designated by the `year_month` column
+        - For cost, our source of truth has been the `medical_paid` column
+        - They have columns for each type of payment (`inpatient_paid`, but also breakdowns like `inpatient_hospice_paid`, `inpatient_psychiatric_paid`, `inpatient_rehabilitation_paid`)
+    - We can ignore the tables that start with `_int` (e.g., `_int_service_category_1_paid_pivot`) and `_value_set` (e.g., `_value_set_hcc_descriptions`), as well as `pmpm_payer_plan` and `pmpm_payer` (these will eventually hold MA plan data, I'm guessing, but right now it's just "medicare" for everything and not useful)
+
+**Schemas you can ignore**
+These are value sets and intermediate files needed for Tuva, but not useful to us.
+- `ahrq_measures` schema (e.g., `_value_set_pqi` table)
+- `ccsr` schema (e.g., `_value_set_dxccsr_v2023_1_body_systems` table)
+- `chronic_conditions` schema (e.g., `_value_set_cms_chronic_conditions_hierarchy` table)
+- `clinical_concept_library` schema (e.g., `clinical_concepts` table)
+- `data_quality` schema (e.g., `_value_set_crosswalk_mart_to_outcome_measure` table)
+- `ed_classification` schema (e.g., `_value_set_icd_10_cm_to_ccs` table)
+- `hcc_suspecting` schema (e.g., `_value_set_clinical_concepts` table)
+- `pharmacy` schema (e.g., `rxnorm_generic_available` table)
+- `quality_measures` schema (e.g., `_value_set_codes` table)
+- `readmissions` schema (e.g., `_value_set_acute_diagnosis_icd_10_cm` table)
+- `reference_data` schema (e.g., `ansi_fips_state` table)
+
+### Core modeling data (in `data` folder):
 - All condition data: `condition_all_{deci}.parquet`
     - For 2018 and 2019, all columns from `core.condition`
 
